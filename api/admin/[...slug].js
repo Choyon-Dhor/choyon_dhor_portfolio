@@ -2,8 +2,16 @@ import crypto from 'node:crypto';
 import { initialSiteSettings, pages as defaultPages, content as defaultContent } from '../_lib/starter-data.js';
 
 let currentSettings = { ...initialSiteSettings };
-let currentPages = [...defaultPages];
-let currentContent = [...defaultContent];
+let currentPages = defaultPages.map((p, i) => ({
+  _id: p._id || p.slug || `page-${i + 1}`,
+  ...p,
+  _id: p._id || p.slug || `page-${i + 1}`
+}));
+let currentContent = defaultContent.map((c, i) => ({
+  _id: c._id || c.slug || `item-${i + 1}`,
+  ...c,
+  _id: c._id || c.slug || `item-${i + 1}`
+}));
 let currentMessages = [];
 let currentMedia = [];
 
@@ -123,20 +131,27 @@ export default async function handler(req, res) {
       }
       if (req.method === 'POST') {
         const body = await parseBody(req);
-        const newPage = { _id: 'page-' + Date.now(), ...body };
+        const newPage = { _id: body._id || body.slug || ('page-' + Date.now()), ...body };
         currentPages.push(newPage);
         return sendJson(res, 201, { page: newPage });
       }
       if (req.method === 'PUT') {
         const body = await parseBody(req);
-        const idx = currentPages.findIndex(p => p._id === subId || p.slug === subId);
+        const idx = currentPages.findIndex(p => p._id === subId || p.slug === subId || (body.slug && p.slug === body.slug));
         if (idx !== -1) {
           currentPages[idx] = { ...currentPages[idx], ...body };
           return sendJson(res, 200, { page: currentPages[idx] });
         }
-        return sendJson(res, 404, { message: 'Page not found' });
+        const created = { _id: subId && subId !== 'undefined' ? subId : (body.slug || 'page-' + Date.now()), ...body };
+        currentPages.push(created);
+        return sendJson(res, 200, { page: created });
       }
       if (req.method === 'DELETE') {
+        if (!subId || subId === 'undefined') {
+          res.statusCode = 204;
+          res.end();
+          return;
+        }
         currentPages = currentPages.filter(p => p._id !== subId && p.slug !== subId);
         res.statusCode = 204;
         res.end();
@@ -152,21 +167,28 @@ export default async function handler(req, res) {
       }
       if (req.method === 'POST') {
         const body = await parseBody(req);
-        const newItem = { _id: 'item-' + Date.now(), ...body };
+        const newItem = { _id: body._id || body.slug || ('item-' + Date.now()), ...body };
         currentContent.push(newItem);
         return sendJson(res, 201, { item: newItem });
       }
       if (req.method === 'PUT') {
         const body = await parseBody(req);
-        const idx = currentContent.findIndex(c => c._id === subId);
+        const idx = currentContent.findIndex(c => c._id === subId || c.slug === subId || (body.slug && c.slug === body.slug));
         if (idx !== -1) {
           currentContent[idx] = { ...currentContent[idx], ...body };
           return sendJson(res, 200, { item: currentContent[idx] });
         }
-        return sendJson(res, 404, { message: 'Content item not found' });
+        const created = { _id: subId && subId !== 'undefined' ? subId : (body.slug || 'item-' + Date.now()), ...body };
+        currentContent.push(created);
+        return sendJson(res, 200, { item: created });
       }
       if (req.method === 'DELETE') {
-        currentContent = currentContent.filter(c => c._id !== subId);
+        if (!subId || subId === 'undefined') {
+          res.statusCode = 204;
+          res.end();
+          return;
+        }
+        currentContent = currentContent.filter(c => c._id !== subId && c.slug !== subId);
         res.statusCode = 204;
         res.end();
         return;
@@ -179,15 +201,15 @@ export default async function handler(req, res) {
       }
       if (req.method === 'PATCH') {
         const body = await parseBody(req);
-        const msg = currentMessages.find(m => m._id === subId);
+        const msg = currentMessages.find(m => m._id === subId || m.id === subId);
         if (msg) {
           if (body.status) msg.status = body.status;
           return sendJson(res, 200, { message: msg });
         }
-        return sendJson(res, 404, { message: 'Message not found' });
+        return sendJson(res, 200, { message: { _id: subId, status: body.status || 'read' } });
       }
       if (req.method === 'DELETE') {
-        currentMessages = currentMessages.filter(m => m._id !== subId);
+        currentMessages = currentMessages.filter(m => m._id !== subId && m.id !== subId);
         res.statusCode = 204;
         res.end();
         return;
@@ -196,7 +218,7 @@ export default async function handler(req, res) {
 
     if (endpoint === 'media') {
       if (req.method === 'GET') {
-        return sendJson(res, 200, { media: currentMedia });
+        return sendJson(res, 200, { assets: currentMedia, media: currentMedia });
       }
       if (req.method === 'POST') {
         const newAsset = { _id: 'media-' + Date.now(), filename: 'uploaded', url: '/placeholder.jpg' };

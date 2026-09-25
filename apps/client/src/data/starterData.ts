@@ -118,7 +118,7 @@ export const initialSiteSettings = {
   "seoDescription": "Interactive portfolio of Choyon Dhor: research, projects, leadership, activities, achievements and future goals."
 };
 
-export const pages = [
+const rawPages = [
   {
     "slug": "home",
     "title": "Identity Core",
@@ -209,7 +209,7 @@ export const pages = [
   }
 ];
 
-export const content = [
+const rawContent = [
   {
     "type": "research",
     "slug": "context-aware-stlf",
@@ -816,4 +816,18 @@ export const content = [
   }
 ];
 
+export const pages = rawPages.map((p, i) => {
+  const item = { ...p } as any;
+  item._id = item._id || item.slug || `page-${i + 1}`;
+  return item;
+});
+
+export const content = rawContent.map((c, i) => {
+  const item = { ...c } as any;
+  item._id = item._id || item.slug || `item-${i + 1}`;
+  return item;
+});
+
 export const fallbackBootstrapData = { settings: initialSiteSettings as any, pages: pages as any, items: content as any };
+
+

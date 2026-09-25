@@ -10,10 +10,23 @@ const blank: Partial<PageData> = { slug: '', title: '', eyebrow: '', subtitle: '
 export function PagesManagerPage() {
   const client = useQueryClient(); const [editing, setEditing] = useState<Partial<PageData> | null>(null);
   const { data } = useQuery({ queryKey: ['admin-pages'], queryFn: async () => (await api.get<{ pages: PageData[] }>('/admin/pages')).data.pages });
-  const save = useMutation({ mutationFn: async (page: Partial<PageData>) => page._id ? api.put(`/admin/pages/${page._id}`, page) : api.post('/admin/pages', page), onSuccess: () => { client.invalidateQueries({ queryKey: ['admin-pages'] }); client.invalidateQueries({ queryKey: ['bootstrap'] }); setEditing(null); toast.success('Page saved.'); }, onError: (e) => toast.error(e.message) });
-  const remove = useMutation({ mutationFn: async (id: string) => api.delete(`/admin/pages/${id}`), onSuccess: () => { client.invalidateQueries({ queryKey: ['admin-pages'] }); client.invalidateQueries({ queryKey: ['bootstrap'] }); toast.success('Page deleted.'); } });
+  const save = useMutation({
+    mutationFn: async (page: Partial<PageData>) => {
+      const id = page._id || page.slug;
+      return id ? api.put(`/admin/pages/${id}`, page) : api.post('/admin/pages', page);
+    },
+    onSuccess: () => { client.invalidateQueries({ queryKey: ['admin-pages'] }); client.invalidateQueries({ queryKey: ['bootstrap'] }); setEditing(null); toast.success('Page saved.'); },
+    onError: (e) => toast.error(e.message)
+  });
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      if (!id || id === 'undefined') return;
+      return api.delete(`/admin/pages/${id}`);
+    },
+    onSuccess: () => { client.invalidateQueries({ queryKey: ['admin-pages'] }); client.invalidateQueries({ queryKey: ['bootstrap'] }); toast.success('Page deleted.'); }
+  });
   return <div className="admin-page"><AdminHeader eyebrow="PAGE CONTROL" title="Pages" description="Edit page headings, introductions, visibility, SEO and custom section data." action={<button className="button primary" onClick={() => setEditing({ ...blank })}><Plus size={17} /> New page</button>} />
-    <section className="admin-panel table-panel"><div className="admin-table"><div className="table-head pages"><span>Page</span><span>Slug</span><span>Visibility</span><span>Order</span><span>Actions</span></div>{data?.map((page) => <div className="table-row pages" key={page._id}><div><strong>{page.title}</strong><small>{page.eyebrow}</small></div><code>/{page.slug}</code><span>{page.visible ? 'Visible' : 'Hidden'}</span><span>{page.order}</span><div className="row-actions"><button onClick={() => setEditing(page)}><Edit3 size={16} /></button><button className="danger" onClick={() => confirm(`Delete page “${page.title}”?`) && remove.mutate(page._id)}><Trash2 size={16} /></button></div></div>)}</div></section>
+    <section className="admin-panel table-panel"><div className="admin-table"><div className="table-head pages"><span>Page</span><span>Slug</span><span>Visibility</span><span>Order</span><span>Actions</span></div>{data?.map((page) => <div className="table-row pages" key={page._id || page.slug}><div><strong>{page.title}</strong><small>{page.eyebrow}</small></div><code>/{page.slug}</code><span>{page.visible ? 'Visible' : 'Hidden'}</span><span>{page.order}</span><div className="row-actions"><button onClick={() => setEditing(page)}><Edit3 size={16} /></button><button className="danger" onClick={() => { const id = page._id || page.slug; if (id && confirm(`Delete page “${page.title}”?`)) remove.mutate(id); }}><Trash2 size={16} /></button></div></div>)}</div></section>
     {editing && <PageEditor value={editing} saving={save.isPending} onClose={() => setEditing(null)} onSave={(page) => save.mutate(page)} />}
   </div>;
 }

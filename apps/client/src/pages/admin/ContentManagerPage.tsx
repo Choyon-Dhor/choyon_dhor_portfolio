@@ -1,4 +1,4 @@
-﻿import { Edit3, Plus, Search, Trash2, X } from 'lucide-react';
+import { Edit3, Plus, Search, Trash2, X } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -17,16 +17,26 @@ export function ContentManagerPage() {
   const [editing, setEditing] = useState<Partial<ContentItem> | null>(null);
   const { data, isLoading } = useQuery({ queryKey: ['admin-content'], queryFn: async () => (await api.get<{ items: ContentItem[] }>('/admin/content')).data.items });
   const save = useMutation({
-    mutationFn: async (item: Partial<ContentItem>) => item._id ? (await api.put(`/admin/content/${item._id}`, item)).data : (await api.post('/admin/content', item)).data,
+    mutationFn: async (item: Partial<ContentItem>) => {
+      const id = item._id || item.slug;
+      return id ? (await api.put(`/admin/content/${id}`, item)).data : (await api.post('/admin/content', item)).data;
+    },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-content'] }); queryClient.invalidateQueries({ queryKey: ['bootstrap'] }); setEditing(null); toast.success('Content saved.'); },
     onError: (error) => toast.error(error.message)
   });
-  const remove = useMutation({ mutationFn: async (id: string) => api.delete(`/admin/content/${id}`), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-content'] }); queryClient.invalidateQueries({ queryKey: ['bootstrap'] }); toast.success('Content deleted.'); }, onError: (error) => toast.error(error.message) });
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      if (!id || id === 'undefined') return;
+      return api.delete(`/admin/content/${id}`);
+    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-content'] }); queryClient.invalidateQueries({ queryKey: ['bootstrap'] }); toast.success('Content deleted.'); },
+    onError: (error) => toast.error(error.message)
+  });
   const items = useMemo(() => (data || []).filter((item) => (filter === 'all' || item.type === filter) && `${item.title} ${item.shortTitle || ''} ${item.category} ${item.organization}`.toLowerCase().includes(search.toLowerCase())), [data, filter, search]);
 
   return <div className="admin-page"><AdminHeader eyebrow="CONTENT ENGINE" title="Portfolio content" description="Create, edit, feature or remove research, projects, activities, events and other portfolio entities." action={<button className="button primary" onClick={() => setEditing({ ...blank })}><Plus size={17} /> New record</button>} />
     <div className="admin-toolbar"><div className="search-box"><Search size={16} /><input placeholder="Search content..." value={search} onChange={(event) => setSearch(event.target.value)} /></div><select value={filter} onChange={(event) => setFilter(event.target.value as 'all' | ContentType)}><option value="all">All types</option>{types.map((type) => <option key={type}>{type}</option>)}</select></div>
-    <section className="admin-panel table-panel"><div className="admin-table"><div className="table-head"><span>Title</span><span>Type</span><span>Status</span><span>Visibility</span><span>Actions</span></div>{isLoading ? <p className="table-empty">Loading records...</p> : items.map((item) => <div className="table-row" key={item._id}><div><strong>{item.title}</strong><small>{item.category}{item.organization ? ` - ${item.organization}` : ''}</small></div><span className="type-badge">{item.type}</span><span>{item.status}</span><span>{item.visible ? 'Visible' : 'Hidden'}{item.featured ? ' - Featured' : ''}</span><div className="row-actions"><button onClick={() => setEditing(item)}><Edit3 size={16} /></button><button className="danger" onClick={() => confirm(`Delete "${item.title}"?`) && remove.mutate(item._id)}><Trash2 size={16} /></button></div></div>)}{!isLoading && !items.length && <p className="table-empty">No matching records.</p>}</div></section>
+    <section className="admin-panel table-panel"><div className="admin-table"><div className="table-head"><span>Title</span><span>Type</span><span>Status</span><span>Visibility</span><span>Actions</span></div>{isLoading ? <p className="table-empty">Loading records...</p> : items.map((item) => <div className="table-row" key={item._id || item.slug}><div><strong>{item.title}</strong><small>{item.category}{item.organization ? ` - ${item.organization}` : ''}</small></div><span className="type-badge">{item.type}</span><span>{item.status}</span><span>{item.visible ? 'Visible' : 'Hidden'}{item.featured ? ' - Featured' : ''}</span><div className="row-actions"><button onClick={() => setEditing(item)}><Edit3 size={16} /></button><button className="danger" onClick={() => { const id = item._id || item.slug; if (id && confirm(`Delete "${item.title}"?`)) remove.mutate(id); }}><Trash2 size={16} /></button></div></div>)}{!isLoading && !items.length && <p className="table-empty">No matching records.</p>}</div></section>
     {editing && <ContentEditor value={editing} allItems={data || []} onClose={() => setEditing(null)} onSave={(value) => save.mutate(value)} saving={save.isPending} />}
   </div>;
 }
