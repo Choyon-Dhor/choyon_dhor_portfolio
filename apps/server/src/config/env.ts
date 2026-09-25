@@ -1,24 +1,26 @@
 import 'dotenv/config';
-import { z } from 'zod';
 
-const mongoUriSchema = z
-  .string()
-  .default('')
-  .refine(
-    (value) => !value || value.startsWith('mongodb://') || value.startsWith('mongodb+srv://'),
-    'MONGODB_URI must start with mongodb:// or mongodb+srv://'
-  );
+function clean(val?: string): string {
+  if (!val) return '';
+  return val.trim().replace(/^["']|["']$/g, '');
+}
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  PORT: z.coerce.number().default(5000),
-  MONGODB_URI: mongoUriSchema,
-  CLIENT_URL: z.string().default('http://localhost:5173'),
-  JWT_SECRET: z.string().min(32).default('development-only-secret-change-before-production-32-chars'),
-  COOKIE_SECURE: z.string().default('false').transform((value) => value === 'true'),
-  ADMIN_NAME: z.string().default('Choyon Dhor'),
-  ADMIN_EMAIL: z.string().email().default('admin@example.com'),
-  ADMIN_PASSWORD: z.string().min(8).default('ChangeMe123!')
-});
+const rawUri = clean(process.env.MONGODB_URI);
+const validUri = (rawUri.startsWith('mongodb://') || rawUri.startsWith('mongodb+srv://')) ? rawUri : '';
 
-export const env = envSchema.parse(process.env);
+let jwtSecret = clean(process.env.JWT_SECRET) || 'development-only-secret-change-before-production-32-chars';
+if (jwtSecret.length < 32) {
+  jwtSecret = jwtSecret.padEnd(32, '_');
+}
+
+export const env = {
+  NODE_ENV: (clean(process.env.NODE_ENV) || 'development') as 'development' | 'test' | 'production',
+  PORT: Number(clean(process.env.PORT)) || 5000,
+  MONGODB_URI: validUri,
+  CLIENT_URL: clean(process.env.CLIENT_URL) || 'http://localhost:5173',
+  JWT_SECRET: jwtSecret,
+  COOKIE_SECURE: clean(process.env.COOKIE_SECURE) === 'true',
+  ADMIN_NAME: clean(process.env.ADMIN_NAME) || 'Choyon Dhor',
+  ADMIN_EMAIL: clean(process.env.ADMIN_EMAIL) || 'admin@example.com',
+  ADMIN_PASSWORD: clean(process.env.ADMIN_PASSWORD) || 'ChangeMe123!'
+};

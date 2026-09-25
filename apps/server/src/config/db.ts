@@ -4,14 +4,15 @@ import { env } from './env.js';
 let memoryServer: any = null;
 
 export async function connectDatabase(): Promise<void> {
-  if (mongoose.connection.readyState >= 1) return;
+  if (mongoose.connection.readyState === 1) return;
   mongoose.set('strictQuery', true);
+  mongoose.set('bufferCommands', false);
 
   if (env.MONGODB_URI && env.MONGODB_URI.trim() && !env.MONGODB_URI.includes('YOUR_DB_USER')) {
     try {
       console.log('Connecting to primary MongoDB URI...');
       await mongoose.connect(env.MONGODB_URI, {
-        serverSelectionTimeoutMS: 5000
+        serverSelectionTimeoutMS: process.env.VERCEL ? 2000 : 5000
       });
       console.log(`MongoDB connected: ${mongoose.connection.name}`);
       return;

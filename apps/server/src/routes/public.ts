@@ -15,7 +15,7 @@ const router = Router();
 
 router.get('/bootstrap', asyncHandler(async (_req, res) => {
   try {
-    if (mongoose.connection.readyState >= 1) {
+    if (mongoose.connection.readyState === 1) {
       const [settings, pages, items] = await Promise.all([
         SiteSettings.findOne({ key: 'primary' }).lean(),
         Page.find({ visible: true }).sort({ order: 1, title: 1 }).lean(),
@@ -39,7 +39,7 @@ router.get('/bootstrap', asyncHandler(async (_req, res) => {
 
 router.get('/content', asyncHandler(async (req, res) => {
   try {
-    if (mongoose.connection.readyState >= 1) {
+    if (mongoose.connection.readyState === 1) {
       const filter: Record<string, unknown> = { visible: true };
       if (req.query.type) filter.type = req.query.type;
       if (req.query.featured === 'true') filter.featured = true;
@@ -58,7 +58,7 @@ router.get('/content', asyncHandler(async (req, res) => {
 
 router.get('/content/:type/:slug', asyncHandler(async (req, res) => {
   try {
-    if (mongoose.connection.readyState >= 1) {
+    if (mongoose.connection.readyState === 1) {
       const item = await ContentItem.findOne({ type: req.params.type, slug: req.params.slug, visible: true }).lean();
       if (item) return res.json({ item });
     }
@@ -76,7 +76,7 @@ router.post('/contact', contactLimiter, asyncHandler(async (req, res) => {
   const data = contactSchema.parse(req.body);
   const ipHash = crypto.createHash('sha256').update(req.ip ?? 'unknown').digest('hex').slice(0, 20);
   try {
-    if (mongoose.connection.readyState >= 1) {
+    if (mongoose.connection.readyState === 1) {
       const message = await ContactMessage.create({ ...data, ipHash });
       return res.status(201).json({ id: message._id, message: 'Transmission received successfully.' });
     }

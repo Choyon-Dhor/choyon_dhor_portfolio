@@ -94162,11 +94162,11 @@ var require_clean = __commonJS({
   "node_modules/jsonwebtoken/node_modules/semver/functions/clean.js"(exports, module) {
     "use strict";
     var parse3 = require_parse2();
-    var clean = (version2, options2) => {
+    var clean2 = (version2, options2) => {
       const s = parse3(version2.trim().replace(/^[=v]+/, ""), options2);
       return s ? s.version : null;
     };
-    module.exports = clean;
+    module.exports = clean2;
   }
 });
 
@@ -95563,7 +95563,7 @@ var require_semver2 = __commonJS({
     var identifiers = require_identifiers();
     var parse3 = require_parse2();
     var valid = require_valid();
-    var clean = require_clean();
+    var clean2 = require_clean();
     var inc = require_inc();
     var diff = require_diff();
     var major = require_major();
@@ -95602,7 +95602,7 @@ var require_semver2 = __commonJS({
     module.exports = {
       parse: parse3,
       valid,
-      clean,
+      clean: clean2,
       inc,
       diff,
       major,
@@ -114648,11 +114648,11 @@ var require_clean2 = __commonJS({
   "node_modules/mongodb-memory-server-core/node_modules/semver/functions/clean.js"(exports, module) {
     "use strict";
     var parse3 = require_parse3();
-    var clean = (version2, options2) => {
+    var clean2 = (version2, options2) => {
       const s = parse3(version2.trim().replace(/^[=v]+/, ""), options2);
       return s ? s.version : null;
     };
-    module.exports = clean;
+    module.exports = clean2;
   }
 });
 
@@ -116049,7 +116049,7 @@ var require_semver4 = __commonJS({
     var identifiers = require_identifiers2();
     var parse3 = require_parse3();
     var valid = require_valid3();
-    var clean = require_clean2();
+    var clean2 = require_clean2();
     var inc = require_inc2();
     var diff = require_diff2();
     var major = require_major2();
@@ -116088,7 +116088,7 @@ var require_semver4 = __commonJS({
     module.exports = {
       parse: parse3,
       valid,
-      clean,
+      clean: clean2,
       inc,
       diff,
       major,
@@ -122403,8 +122403,8 @@ var require_semver5 = __commonJS({
       var v = parse3(version2, options2);
       return v ? v.version : null;
     }
-    exports.clean = clean;
-    function clean(version2, options2) {
+    exports.clean = clean2;
+    function clean2(version2, options2) {
       var s = parse3(version2.trim().replace(/^[=v]+/, ""), options2);
       return s ? s.version : null;
     }
@@ -156631,6 +156631,29 @@ var import_morgan = __toESM(require_morgan(), 1);
   );
 })();
 
+// apps/server/src/config/env.ts
+function clean(val) {
+  if (!val) return "";
+  return val.trim().replace(/^["']|["']$/g, "");
+}
+var rawUri = clean(process.env.MONGODB_URI);
+var validUri = rawUri.startsWith("mongodb://") || rawUri.startsWith("mongodb+srv://") ? rawUri : "";
+var jwtSecret = clean(process.env.JWT_SECRET) || "development-only-secret-change-before-production-32-chars";
+if (jwtSecret.length < 32) {
+  jwtSecret = jwtSecret.padEnd(32, "_");
+}
+var env = {
+  NODE_ENV: clean(process.env.NODE_ENV) || "development",
+  PORT: Number(clean(process.env.PORT)) || 5e3,
+  MONGODB_URI: validUri,
+  CLIENT_URL: clean(process.env.CLIENT_URL) || "http://localhost:5173",
+  JWT_SECRET: jwtSecret,
+  COOKIE_SECURE: clean(process.env.COOKIE_SECURE) === "true",
+  ADMIN_NAME: clean(process.env.ADMIN_NAME) || "Choyon Dhor",
+  ADMIN_EMAIL: clean(process.env.ADMIN_EMAIL) || "admin@example.com",
+  ADMIN_PASSWORD: clean(process.env.ADMIN_PASSWORD) || "ChangeMe123!"
+};
+
 // node_modules/zod/v4/classic/external.js
 var external_exports = {};
 __export(external_exports, {
@@ -171145,24 +171168,6 @@ function date4(params) {
 // node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// apps/server/src/config/env.ts
-var mongoUriSchema = external_exports.string().default("").refine(
-  (value) => !value || value.startsWith("mongodb://") || value.startsWith("mongodb+srv://"),
-  "MONGODB_URI must start with mongodb:// or mongodb+srv://"
-);
-var envSchema = external_exports.object({
-  NODE_ENV: external_exports.enum(["development", "test", "production"]).default("development"),
-  PORT: external_exports.coerce.number().default(5e3),
-  MONGODB_URI: mongoUriSchema,
-  CLIENT_URL: external_exports.string().default("http://localhost:5173"),
-  JWT_SECRET: external_exports.string().min(32).default("development-only-secret-change-before-production-32-chars"),
-  COOKIE_SECURE: external_exports.string().default("false").transform((value) => value === "true"),
-  ADMIN_NAME: external_exports.string().default("Choyon Dhor"),
-  ADMIN_EMAIL: external_exports.string().email().default("admin@example.com"),
-  ADMIN_PASSWORD: external_exports.string().min(8).default("ChangeMe123!")
-});
-var env = envSchema.parse(process.env);
-
 // apps/server/src/utils/AppError.ts
 var AppError = class extends Error {
   constructor(statusCode, message) {
@@ -173688,13 +173693,14 @@ import { pathToFileURL } from "node:url";
 var import_mongoose7 = __toESM(require_mongoose2(), 1);
 var memoryServer = null;
 async function connectDatabase() {
-  if (import_mongoose7.default.connection.readyState >= 1) return;
+  if (import_mongoose7.default.connection.readyState === 1) return;
   import_mongoose7.default.set("strictQuery", true);
+  import_mongoose7.default.set("bufferCommands", false);
   if (env.MONGODB_URI && env.MONGODB_URI.trim() && !env.MONGODB_URI.includes("YOUR_DB_USER")) {
     try {
       console.log("Connecting to primary MongoDB URI...");
       await import_mongoose7.default.connect(env.MONGODB_URI, {
-        serverSelectionTimeoutMS: 5e3
+        serverSelectionTimeoutMS: process.env.VERCEL ? 2e3 : 5e3
       });
       console.log(`MongoDB connected: ${import_mongoose7.default.connection.name}`);
       return;
@@ -174174,7 +174180,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 var router3 = (0, import_express3.Router)();
 router3.get("/bootstrap", asyncHandler(async (_req, res) => {
   try {
-    if (import_mongoose9.default.connection.readyState >= 1) {
+    if (import_mongoose9.default.connection.readyState === 1) {
       const [settings, pages2, items] = await Promise.all([
         SiteSettings.findOne({ key: "primary" }).lean(),
         Page.find({ visible: true }).sort({ order: 1, title: 1 }).lean(),
@@ -174195,7 +174201,7 @@ router3.get("/bootstrap", asyncHandler(async (_req, res) => {
 }));
 router3.get("/content", asyncHandler(async (req, res) => {
   try {
-    if (import_mongoose9.default.connection.readyState >= 1) {
+    if (import_mongoose9.default.connection.readyState === 1) {
       const filter = { visible: true };
       if (req.query.type) filter.type = req.query.type;
       if (req.query.featured === "true") filter.featured = true;
@@ -174212,7 +174218,7 @@ router3.get("/content", asyncHandler(async (req, res) => {
 }));
 router3.get("/content/:type/:slug", asyncHandler(async (req, res) => {
   try {
-    if (import_mongoose9.default.connection.readyState >= 1) {
+    if (import_mongoose9.default.connection.readyState === 1) {
       const item = await ContentItem.findOne({ type: req.params.type, slug: req.params.slug, visible: true }).lean();
       if (item) return res.json({ item });
     }
@@ -174228,7 +174234,7 @@ router3.post("/contact", contactLimiter, asyncHandler(async (req, res) => {
   const data = contactSchema.parse(req.body);
   const ipHash = crypto3.createHash("sha256").update(req.ip ?? "unknown").digest("hex").slice(0, 20);
   try {
-    if (import_mongoose9.default.connection.readyState >= 1) {
+    if (import_mongoose9.default.connection.readyState === 1) {
       const message = await ContactMessage.create({ ...data, ipHash });
       return res.status(201).json({ id: message._id, message: "Transmission received successfully." });
     }
@@ -174258,7 +174264,9 @@ app.use(rate_limit_default({ windowMs: 15 * 60 * 1e3, limit: 500, standardHeader
 app.use(import_express4.default.json({ limit: "2mb" }));
 app.use(import_express4.default.urlencoded({ extended: true, limit: "2mb" }));
 app.use((0, import_cookie_parser.default)());
-app.use((0, import_morgan.default)(env.NODE_ENV === "production" ? "combined" : "dev"));
+if (!process.env.VERCEL) {
+  app.use((0, import_morgan.default)(env.NODE_ENV === "production" ? "combined" : "dev"));
+}
 app.use("/uploads", import_express4.default.static(uploadsDirectory, { maxAge: "7d", immutable: true }));
 app.get("/robots.txt", (_req, res) => {
   res.type("text/plain").send(`User-agent: *
@@ -174336,9 +174344,13 @@ function escapeXml(value) {
 var import_mongoose10 = __toESM(require_mongoose2(), 1);
 var initPromise = null;
 async function init() {
-  await connectDatabase();
-  if (import_mongoose10.default.connection.readyState >= 1) {
-    await ensureInitialData();
+  try {
+    await connectDatabase();
+    if (import_mongoose10.default.connection.readyState === 1) {
+      await ensureInitialData();
+    }
+  } catch (err) {
+    console.warn("Database init warning:", err);
   }
 }
 app.use((req, _res, next) => {
@@ -174366,7 +174378,7 @@ app.use(async (_req, _res, next) => {
   try {
     await Promise.race([
       initPromise,
-      new Promise((resolve) => setTimeout(resolve, 1e3))
+      new Promise((resolve) => setTimeout(resolve, 800))
     ]);
   } catch {
   }

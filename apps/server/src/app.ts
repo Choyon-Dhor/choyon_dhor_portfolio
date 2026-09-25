@@ -34,7 +34,9 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 500, standardHeaders: 'draf
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser());
-app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+if (!process.env.VERCEL) {
+  app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+}
 app.use('/uploads', express.static(uploadsDirectory, { maxAge: '7d', immutable: true }));
 
 app.get('/robots.txt', (_req, res) => {
