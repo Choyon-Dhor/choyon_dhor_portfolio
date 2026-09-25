@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import type { BootstrapData, ContentItem, ContentType, PageData } from '../types';
 
+import { fallbackBootstrapData } from '../data/starterData';
+
 interface SiteContextValue extends BootstrapData {
   byType: (type: ContentType) => ContentItem[];
   page: (slug: string) => PageData | undefined;
@@ -13,17 +15,27 @@ const SiteContext = createContext<SiteContextValue | null>(null);
 export function SiteProvider({ children }: { children: ReactNode }) {
   const query = useQuery({
     queryKey: ['bootstrap'],
-    queryFn: async () => (await api.get<BootstrapData>('/public/bootstrap')).data,
+    queryFn: async () => {
+      try {
+        const res = await api.get<BootstrapData>('/public/bootstrap');
+        if (res.data && res.data.settings) {
+          return res.data;
+        }
+        return fallbackBootstrapData;
+      } catch (err) {
+        console.warn('API bootstrap call failed, using bundled starter data:', err);
+        return fallbackBootstrapData;
+      }
+    },
     staleTime: 60_000
   });
 
-  if (query.isLoading) return <LoadingScreen />;
-  if (query.error || !query.data) return <ErrorScreen message={query.error?.message || 'Unable to load the portfolio.'} />;
+  const data: BootstrapData = query.data || fallbackBootstrapData;
 
   const value: SiteContextValue = {
-    ...query.data,
-    byType: (type) => query.data.items.filter((item) => item.type === type),
-    page: (slug) => query.data.pages.find((item) => item.slug === slug)
+    ...data,
+    byType: (type) => data.items.filter((item) => item.type === type),
+    page: (slug) => data.pages.find((item) => item.slug === slug)
   };
 
   return <SiteContext.Provider value={value}>{children}</SiteContext.Provider>;
