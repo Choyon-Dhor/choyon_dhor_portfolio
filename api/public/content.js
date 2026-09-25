@@ -1,4 +1,4 @@
-import { initialSiteSettings, pages, content } from './starter-data.js';
+import { content } from './starter-data.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -13,9 +13,5 @@ export default function handler(req, res) {
 
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({
-    settings: initialSiteSettings,
-    pages,
-    items: content
-  }));
+  res.end(JSON.stringify({ items: content }));
 }

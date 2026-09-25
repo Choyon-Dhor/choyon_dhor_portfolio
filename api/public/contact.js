@@ -1,8 +1,6 @@
-import { initialSiteSettings, pages, content } from './starter-data.js';
-
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -11,11 +9,7 @@ export default function handler(req, res) {
     return;
   }
 
-  res.statusCode = 200;
+  res.statusCode = 201;
   res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({
-    settings: initialSiteSettings,
-    pages,
-    items: content
-  }));
+  res.end(JSON.stringify({ id: 'msg-' + Date.now(), message: 'Transmission received successfully.' }));
 }
