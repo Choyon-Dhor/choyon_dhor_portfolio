@@ -1,4 +1,4 @@
-import { content } from './starter-data.js';
+import { content } from '../_lib/starter-data.js';
 
 function setCors(req, res) {
   const origin = req.headers?.origin;

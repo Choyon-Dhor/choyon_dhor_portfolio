@@ -1,0 +1,218 @@
+import crypto from 'node:crypto';
+import { initialSiteSettings, pages as defaultPages, content as defaultContent } from '../_lib/starter-data.js';
+
+let currentSettings = { ...initialSiteSettings };
+let currentPages = [...defaultPages];
+let currentContent = [...defaultContent];
+let currentMessages = [];
+let currentMedia = [];
+
+function setCors(req, res) {
+  const origin = req.headers?.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Cookie, Authorization');
+}
+
+function verifyJwt(token, secret) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const [header, body, signature] = parts;
+    const expected = crypto.createHmac('sha256', secret).update(`${header}.${body}`).digest('base64url');
+    if (signature === expected) {
+      return JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
+    }
+  } catch {}
+  return null;
+}
+
+function checkAuth(req) {
+  const cookieHeader = req.headers?.cookie || '';
+  const match = cookieHeader.match(/nexus_token=([^;]+)/);
+  const authHeader = req.headers?.authorization || '';
+  const bearerMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+  const token = match ? match[1] : (bearerMatch ? bearerMatch[1] : null);
+
+  if (!token) return false;
+  const jwtSecret = (process.env.JWT_SECRET || 'development-only-secret-change-before-production-32-chars').padEnd(32, '_');
+  return !!verifyJwt(token, jwtSecret);
+}
+
+function sendJson(res, statusCode, data) {
+  res.statusCode = statusCode;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(data));
+}
+
+async function parseBody(req) {
+  if (typeof req.body === 'object' && req.body !== null) return req.body;
+  if (typeof req.body === 'string') {
+    try { return JSON.parse(req.body); } catch {}
+  }
+  try {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    const raw = Buffer.concat(chunks).toString('utf8');
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return {};
+}
+
+export default async function handler(req, res) {
+  setCors(req, res);
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
+  if (!checkAuth(req)) {
+    return sendJson(res, 401, { message: 'Authentication required' });
+  }
+
+  // Extract slug from req.query.slug or URL
+  let slug = req.query?.slug;
+  if (!slug) {
+    const url = new URL(req.url, 'http://localhost');
+    const path = url.pathname.replace(/^\/api\/admin\/?/, '');
+    slug = path.split('/').filter(Boolean);
+  } else if (typeof slug === 'string') {
+    slug = [slug];
+  }
+
+  const endpoint = slug[0] || 'dashboard';
+  const subId = slug[1];
+
+  try {
+    if (endpoint === 'dashboard') {
+      const typeCounts = {};
+      currentContent.forEach(item => {
+        typeCounts[item.type] = (typeCounts[item.type] || 0) + 1;
+      });
+      const contentCounts = Object.entries(typeCounts).map(([_id, count]) => ({ _id, count }));
+      return sendJson(res, 200, {
+        contentCounts,
+        unreadMessages: currentMessages.filter(m => m.status === 'new').length,
+        totalPages: currentPages.length,
+        recentMessages: currentMessages.slice(0, 5),
+        mediaCount: currentMedia.length
+      });
+    }
+
+    if (endpoint === 'settings') {
+      if (req.method === 'GET') {
+        return sendJson(res, 200, { settings: currentSettings });
+      }
+      if (req.method === 'PUT') {
+        const body = await parseBody(req);
+        currentSettings = { ...currentSettings, ...body, key: 'primary' };
+        return sendJson(res, 200, { settings: currentSettings });
+      }
+    }
+
+    if (endpoint === 'pages') {
+      if (req.method === 'GET') {
+        return sendJson(res, 200, { pages: currentPages });
+      }
+      if (req.method === 'POST') {
+        const body = await parseBody(req);
+        const newPage = { _id: 'page-' + Date.now(), ...body };
+        currentPages.push(newPage);
+        return sendJson(res, 201, { page: newPage });
+      }
+      if (req.method === 'PUT') {
+        const body = await parseBody(req);
+        const idx = currentPages.findIndex(p => p._id === subId || p.slug === subId);
+        if (idx !== -1) {
+          currentPages[idx] = { ...currentPages[idx], ...body };
+          return sendJson(res, 200, { page: currentPages[idx] });
+        }
+        return sendJson(res, 404, { message: 'Page not found' });
+      }
+      if (req.method === 'DELETE') {
+        currentPages = currentPages.filter(p => p._id !== subId && p.slug !== subId);
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+    }
+
+    if (endpoint === 'content') {
+      if (req.method === 'GET') {
+        const type = req.query?.type;
+        const items = type ? currentContent.filter(c => c.type === type) : currentContent;
+        return sendJson(res, 200, { items });
+      }
+      if (req.method === 'POST') {
+        const body = await parseBody(req);
+        const newItem = { _id: 'item-' + Date.now(), ...body };
+        currentContent.push(newItem);
+        return sendJson(res, 201, { item: newItem });
+      }
+      if (req.method === 'PUT') {
+        const body = await parseBody(req);
+        const idx = currentContent.findIndex(c => c._id === subId);
+        if (idx !== -1) {
+          currentContent[idx] = { ...currentContent[idx], ...body };
+          return sendJson(res, 200, { item: currentContent[idx] });
+        }
+        return sendJson(res, 404, { message: 'Content item not found' });
+      }
+      if (req.method === 'DELETE') {
+        currentContent = currentContent.filter(c => c._id !== subId);
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+    }
+
+    if (endpoint === 'messages') {
+      if (req.method === 'GET') {
+        return sendJson(res, 200, { messages: currentMessages });
+      }
+      if (req.method === 'PATCH') {
+        const body = await parseBody(req);
+        const msg = currentMessages.find(m => m._id === subId);
+        if (msg) {
+          if (body.status) msg.status = body.status;
+          return sendJson(res, 200, { message: msg });
+        }
+        return sendJson(res, 404, { message: 'Message not found' });
+      }
+      if (req.method === 'DELETE') {
+        currentMessages = currentMessages.filter(m => m._id !== subId);
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+    }
+
+    if (endpoint === 'media') {
+      if (req.method === 'GET') {
+        return sendJson(res, 200, { media: currentMedia });
+      }
+      if (req.method === 'POST') {
+        const newAsset = { _id: 'media-' + Date.now(), filename: 'uploaded', url: '/placeholder.jpg' };
+        currentMedia.push(newAsset);
+        return sendJson(res, 201, { asset: newAsset });
+      }
+      if (req.method === 'DELETE') {
+        currentMedia = currentMedia.filter(m => m._id !== subId);
+        res.statusCode = 204;
+        res.end();
+        return;
+      }
+    }
+
+    return sendJson(res, 404, { message: 'Unknown admin route: ' + endpoint });
+  } catch (err) {
+    return sendJson(res, 500, { message: err.message || 'Internal server error' });
+  }
+}

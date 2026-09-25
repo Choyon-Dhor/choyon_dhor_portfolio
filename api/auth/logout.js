@@ -23,6 +23,8 @@ export default function handler(req, res) {
     'Set-Cookie',
     'nexus_token=; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=0'
   );
-  res.statusCode = 204;
-  res.end();
+
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify({ success: true }));
 }
