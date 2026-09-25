@@ -1,5 +1,6 @@
-﻿import bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs';
 import { pathToFileURL } from 'node:url';
+import mongoose from 'mongoose';
 import { connectDatabase, disconnectDatabase } from '../config/db.js';
 import { env } from '../config/env.js';
 import { ContactMessage } from '../models/ContactMessage.js';
@@ -431,6 +432,9 @@ async function seed(): Promise<void> {
 }
 
 export async function ensureInitialData(): Promise<void> {
+  if (mongoose.connection.readyState < 1) {
+    return;
+  }
   const passwordHash = await bcrypt.hash(env.ADMIN_PASSWORD, 12);
   if (await User.countDocuments() === 0) {
     await User.create({ name: env.ADMIN_NAME, email: env.ADMIN_EMAIL.toLowerCase(), passwordHash, role: 'admin' });
