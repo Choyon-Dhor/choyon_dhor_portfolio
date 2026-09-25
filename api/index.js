@@ -10,12 +10,25 @@ async function bootstrap() {
 }
 
 export default async function handler(req, res) {
-  if (!readyPromise) {
-    readyPromise = bootstrap().catch((err) => {
-      readyPromise = null;
-      throw err;
-    });
+  try {
+    if (!readyPromise) {
+      readyPromise = bootstrap().catch((err) => {
+        readyPromise = null;
+        console.error('Serverless bootstrap error:', err);
+        throw err;
+      });
+    }
+    await readyPromise;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Failed to initialize database connection:', message);
+    if (req.url && req.url.startsWith('/api/health')) {
+      return res.status(200).json({
+        status: 'warn',
+        message: 'API running but database connection failed: ' + message
+      });
+    }
   }
-  await readyPromise;
+
   return app(req, res);
 }

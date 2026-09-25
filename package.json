@@ -9,10 +9,25 @@
   ],
   "scripts": {
     "dev": "concurrently -n client,server -c cyan,magenta \"npm run dev -w apps/client\" \"npm run dev -w apps/server\"",
-    "build": "npm run build -w apps/server && npm run build -w apps/client",
+    "build": "npm run build -w apps/server && npm run build -w apps/client && node -e \"import('node:fs').then(fs => fs.cpSync('apps/client/dist', 'dist', {recursive: true}))\"",
     "typecheck": "npm run typecheck -w apps/server && npm run typecheck -w apps/client",
     "seed": "npm run seed -w apps/server",
     "start": "npm run start -w apps/server"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.1",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "slugify": "^1.6.6",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
