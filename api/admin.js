@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { initialSiteSettings, pages as defaultPages, content as defaultContent } from '../_lib/starter-data.js';
+import { initialSiteSettings, pages as defaultPages, content as defaultContent } from './_lib/starter-data.js';
 
 let currentSettings = { ...initialSiteSettings };
 let currentPages = defaultPages.map((p, i) => ({
@@ -92,7 +92,9 @@ export default async function handler(req, res) {
     const path = url.pathname.replace(/^\/api\/admin\/?/, '');
     slug = path.split('/').filter(Boolean);
   } else if (typeof slug === 'string') {
-    slug = [slug];
+    slug = slug.split('/').filter(Boolean);
+  } else if (Array.isArray(slug)) {
+    slug = slug.flatMap(s => typeof s === 'string' ? s.split('/') : s).filter(Boolean);
   }
 
   const endpoint = slug[0] || 'dashboard';
