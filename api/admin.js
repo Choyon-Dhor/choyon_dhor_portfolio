@@ -223,16 +223,37 @@ export default async function handler(req, res) {
         return sendJson(res, 200, { assets: currentMedia, media: currentMedia });
       }
       if (req.method === 'POST') {
-        const newAsset = { _id: 'media-' + Date.now(), filename: 'uploaded', url: '/placeholder.jpg' };
+        const body = await parseBody(req);
+        const newAsset = {
+          _id: 'media-' + Date.now(),
+          filename: 'media-' + Date.now() + '.jpg',
+          url: '/placeholder.jpg',
+          altText: '',
+          caption: '',
+          category: 'General',
+          ...body
+        };
         currentMedia.push(newAsset);
-        return sendJson(res, 201, { asset: newAsset });
+        return sendJson(res, 201, { asset: newAsset, media: newAsset });
+      }
+      if (req.method === 'PATCH' || req.method === 'PUT') {
+        const body = await parseBody(req);
+        const idx = currentMedia.findIndex(m => m._id === subId || m.assetId === subId || m.url === subId);
+        if (idx !== -1) {
+          currentMedia[idx] = { ...currentMedia[idx], ...body };
+          return sendJson(res, 200, { asset: currentMedia[idx], media: currentMedia[idx] });
+        }
+        const created = { _id: subId && subId !== 'undefined' ? subId : ('media-' + Date.now()), url: '/placeholder.jpg', ...body };
+        currentMedia.push(created);
+        return sendJson(res, 200, { asset: created, media: created });
       }
       if (req.method === 'DELETE') {
-        currentMedia = currentMedia.filter(m => m._id !== subId);
+        currentMedia = currentMedia.filter(m => m._id !== subId && m.assetId !== subId);
         res.statusCode = 204;
         res.end();
         return;
       }
+      return sendJson(res, 200, { success: true });
     }
 
     return sendJson(res, 404, { message: 'Unknown admin route: ' + endpoint });

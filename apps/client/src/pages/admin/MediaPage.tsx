@@ -16,8 +16,22 @@ export function MediaPage() {
   const [category, setCategory] = useState('all');
   const [editing, setEditing] = useState<MediaAsset | null>(null);
   const { data } = useQuery({ queryKey: ['admin-media'], queryFn: async () => (await api.get<MediaResponse>('/admin/media')).data.assets });
-  const remove = useMutation({ mutationFn: async (id: string) => api.delete(`/admin/media/${id}`), onSuccess: () => { client.invalidateQueries({ queryKey: ['admin-media'] }); toast.success('Media deleted.'); }, onError: (e) => toast.error(e.message) });
-  const save = useMutation({ mutationFn: async (asset: MediaAsset) => (await api.patch(`/admin/media/${asset._id}`, asset)).data, onSuccess: () => { client.invalidateQueries({ queryKey: ['admin-media'] }); setEditing(null); toast.success('Media updated.'); }, onError: (e) => toast.error(e.message) });
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      if (!id || id === 'undefined') return;
+      return api.delete(`/admin/media/${id}`);
+    },
+    onSuccess: () => { client.invalidateQueries({ queryKey: ['admin-media'] }); toast.success('Media deleted.'); },
+    onError: (e) => toast.error(e.message)
+  });
+  const save = useMutation({
+    mutationFn: async (asset: MediaAsset) => {
+      const id = asset._id || asset.assetId || 'media-' + Date.now();
+      return (await api.patch(`/admin/media/${id}`, asset)).data;
+    },
+    onSuccess: () => { client.invalidateQueries({ queryKey: ['admin-media'] }); setEditing(null); toast.success('Media updated.'); },
+    onError: (e) => toast.error(e.message)
+  });
   const upload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files; if (!files?.length) return; setUploading(true);
     const body = new FormData();
