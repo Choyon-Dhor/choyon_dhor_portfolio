@@ -4366,23 +4366,30 @@ var env = {
 };
 
 // scratch/me.ts
+function sendJson(res, statusCode, data) {
+  res.statusCode = statusCode;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(data));
+}
 async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader("Access-Control-Allow-Origin", req.headers?.origin || "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Cookie");
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
+    res.statusCode = 204;
+    res.end();
+    return;
   }
   const cookieHeader = req.headers?.cookie || "";
   const match = cookieHeader.match(/nexus_token=([^;]+)/);
   const token = match ? match[1] : null;
   if (!token) {
-    return res.status(401).json({ message: "Authentication required" });
+    return sendJson(res, 401, { message: "Authentication required" });
   }
   try {
     const decoded = import_jsonwebtoken.default.verify(token, env.JWT_SECRET);
-    return res.status(200).json({
+    return sendJson(res, 200, {
       user: {
         id: decoded.userId,
         name: env.ADMIN_NAME,
@@ -4391,7 +4398,7 @@ async function handler(req, res) {
       }
     });
   } catch {
-    return res.status(401).json({ message: "Session expired or invalid" });
+    return sendJson(res, 401, { message: "Session expired or invalid" });
   }
 }
 export {

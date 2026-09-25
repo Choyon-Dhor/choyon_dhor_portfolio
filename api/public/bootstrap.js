@@ -110778,12 +110778,19 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
 // scratch/bootstrap.ts
 var dbConnecting = false;
+function sendJson(res, statusCode, data) {
+  res.statusCode = statusCode;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(data));
+}
 async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
+    res.statusCode = 204;
+    res.end();
+    return;
   }
   try {
     if (!dbConnecting && import_mongoose9.default.connection.readyState === 0) {
@@ -110797,13 +110804,13 @@ async function handler(req, res) {
         ContentItem.find({ visible: true }).sort({ order: 1, startDate: -1, createdAt: -1 }).lean()
       ]);
       if (settings && dbPages && dbPages.length > 0) {
-        return res.status(200).json({ settings, pages: dbPages, items: dbItems });
+        return sendJson(res, 200, { settings, pages: dbPages, items: dbItems });
       }
     }
   } catch (err) {
     console.warn("DB query failed during bootstrap, serving starter data:", err);
   }
-  return res.status(200).json({
+  return sendJson(res, 200, {
     settings: initialSiteSettings,
     pages,
     items: content
