@@ -12,8 +12,51 @@ let currentContent = defaultContent.map((c, i) => ({
   ...c,
   _id: c._id || c.slug || `item-${i + 1}`
 }));
-let currentMessages = [];
-let currentMedia = [];
+let currentMessages = [
+  {
+    _id: 'msg-seed-1',
+    name: 'Dr. Sarah Mitchell',
+    email: 's.mitchell@research-lab.org',
+    subject: 'Collaboration inquiry on Time-Series AI',
+    organization: 'Neural Systems Lab',
+    inquiryType: 'Research Collaboration',
+    message: 'Hello Choyon, I reviewed your work on time-series forecasting and explainable AI models. We would love to discuss a potential joint research initiative.',
+    status: 'new',
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString()
+  },
+  {
+    _id: 'msg-seed-2',
+    name: 'Alexandre Chen',
+    email: 'alex.chen@techventures.io',
+    subject: 'Consulting and Engineering Project',
+    organization: 'Horizon Robotics',
+    inquiryType: 'Project Inquiry',
+    message: 'Hi Choyon, your portfolio projects show impressive depth in robotics and machine learning. Are you available for a remote consultancy or internship?',
+    status: 'read',
+    createdAt: new Date(Date.now() - 3600000 * 48).toISOString()
+  }
+];
+
+let currentMedia = [
+  {
+    _id: 'media-avatar-1',
+    filename: 'avatar.jpg',
+    url: '/placeholder.jpg',
+    altText: 'Choyon Dhor profile photo',
+    caption: 'Choyon Dhor – Lead Researcher & Developer',
+    category: 'Profile',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: 'media-project-1',
+    filename: 'project-cover.jpg',
+    url: '/placeholder.jpg',
+    altText: 'Research and project banner',
+    caption: 'AI and Robotics System Interface',
+    category: 'Projects',
+    createdAt: new Date().toISOString()
+  }
+];
 
 function setCors(req, res) {
   const origin = req.headers?.origin;
