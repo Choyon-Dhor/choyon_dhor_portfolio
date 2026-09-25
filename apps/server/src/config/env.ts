@@ -3,9 +3,9 @@ import { z } from 'zod';
 
 const mongoUriSchema = z
   .string()
-  .min(1, 'MONGODB_URI is required')
+  .default('')
   .refine(
-    (value) => value.startsWith('mongodb://') || value.startsWith('mongodb+srv://'),
+    (value) => !value || value.startsWith('mongodb://') || value.startsWith('mongodb+srv://'),
     'MONGODB_URI must start with mongodb:// or mongodb+srv://'
   );
 
@@ -14,7 +14,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(5000),
   MONGODB_URI: mongoUriSchema,
   CLIENT_URL: z.string().default('http://localhost:5173'),
-  JWT_SECRET: z.string().min(32).default('development-only-secret-change-before-production'),
+  JWT_SECRET: z.string().min(32).default('development-only-secret-change-before-production-32-chars'),
   COOKIE_SECURE: z.string().default('false').transform((value) => value === 'true'),
   ADMIN_NAME: z.string().default('Choyon Dhor'),
   ADMIN_EMAIL: z.string().email().default('admin@example.com'),

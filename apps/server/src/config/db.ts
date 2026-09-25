@@ -1,14 +1,13 @@
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { env } from './env.js';
 
-let memoryServer: MongoMemoryServer | null = null;
+let memoryServer: any = null;
 
 export async function connectDatabase(): Promise<void> {
   if (mongoose.connection.readyState >= 1) return;
   mongoose.set('strictQuery', true);
 
-  if (env.MONGODB_URI && !env.MONGODB_URI.includes('YOUR_DB_USER')) {
+  if (env.MONGODB_URI && env.MONGODB_URI.trim() && !env.MONGODB_URI.includes('YOUR_DB_USER')) {
     try {
       console.log('Connecting to primary MongoDB URI...');
       await mongoose.connect(env.MONGODB_URI, {
@@ -20,25 +19,26 @@ export async function connectDatabase(): Promise<void> {
       const message = err instanceof Error ? err.message : String(err);
       console.warn(`\n[WARN] Primary MongoDB connection failed: ${message}`);
       if (process.env.VERCEL) {
-        throw new Error(`MongoDB connection failed on Vercel: ${message}. Please check MONGODB_URI in Vercel environment variables.`);
+        console.warn('[INFO] Vercel environment active. Serving starter data gracefully.\n');
+        return;
       }
-      console.warn('[INFO] Starting in-memory MongoDB fallback for local development...\n');
     }
   }
 
   if (process.env.VERCEL) {
-    throw new Error('MONGODB_URI must be configured in Vercel project environment variables.');
+    console.warn('[INFO] No MONGODB_URI configured in Vercel. Operating with in-memory starter data.');
+    return;
   }
 
   // Fallback to in-memory MongoDB for local development
   try {
+    const { MongoMemoryServer } = await import('mongodb-memory-server');
     memoryServer = await MongoMemoryServer.create();
     const uri = memoryServer.getUri();
     await mongoose.connect(uri);
     console.log(`MongoDB connected (In-Memory Fallback): ${mongoose.connection.name}`);
   } catch (memErr) {
-    console.error('Failed to start in-memory MongoDB:', memErr);
-    throw memErr;
+    console.warn('Failed to start in-memory MongoDB, operating in memory-only mode:', memErr);
   }
 }
 

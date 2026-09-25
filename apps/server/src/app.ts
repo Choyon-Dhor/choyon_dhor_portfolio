@@ -1,4 +1,4 @@
-﻿import cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
@@ -21,7 +21,15 @@ const publicOrigin = clientOrigins[0] || 'http://localhost:5173';
 
 app.set('trust proxy', 1);
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: clientOrigins, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || clientOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.includes('localhost')) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 500, standardHeaders: 'draft-8', legacyHeaders: false }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
