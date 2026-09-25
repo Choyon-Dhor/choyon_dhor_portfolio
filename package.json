@@ -19,9 +19,5 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "dependencies": {
-    "@esbuild/win32-x64": "^0.28.2",
-    "@rollup/rollup-win32-x64-msvc": "^4.63.5"
   }
 }
