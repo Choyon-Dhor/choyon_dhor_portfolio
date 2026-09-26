@@ -1,8 +1,9 @@
-import { Edit3, Plus, Search, Trash2, X } from 'lucide-react';
+import { Edit3, Plus, Search, Trash2, Upload, X } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { api } from '../../lib/api';
+import { readFileAsDataUrl } from '../../lib/fileHelper';
 import type { ContentItem, ContentType } from '../../types';
 import { AdminHeader } from './AdminDashboardPage';
 
@@ -80,7 +81,22 @@ function ContentEditor({ value, allItems, onClose, onSave, saving }: { value: Pa
     <label className="full">Full content (Markdown)<textarea rows={10} value={form.content || ''} onChange={(e) => field('content', e.target.value)} /></label>
     <label>Tags (comma separated)<input value={form.tags?.join(', ') || ''} onChange={(e) => field('tags', e.target.value.split(',').map((x) => x.trim()).filter(Boolean))} /></label>
     <label>Technologies (comma separated)<input value={form.technologies?.join(', ') || ''} onChange={(e) => field('technologies', e.target.value.split(',').map((x) => x.trim()).filter(Boolean))} /></label>
-    <label className="full">Cover image URL<input value={form.coverImage || ''} onChange={(e) => field('coverImage', e.target.value)} placeholder="/uploads/file.webp or https://..." /></label>
+    <div className="full" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.75rem', alignItems: 'end' }}>
+      <label style={{ margin: 0 }}>Cover image URL
+        <input value={form.coverImage || ''} onChange={(e) => field('coverImage', e.target.value)} placeholder="https://... or upload image" />
+      </label>
+      <label className="button secondary" style={{ cursor: 'pointer', marginBottom: '2px', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
+        <Upload size={14} /> Upload image
+        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+          const f = e.target.files?.[0];
+          if (f) {
+            const url = await readFileAsDataUrl(f);
+            field('coverImage', url);
+            toast.success('Cover image selected!');
+          }
+        }} />
+      </label>
+    </div>
     <label>Cover image alt text<input value={form.coverImageAlt || ''} onChange={(e) => field('coverImageAlt', e.target.value)} /></label>
     <label>Cover image caption<input value={form.coverImageCaption || ''} onChange={(e) => field('coverImageCaption', e.target.value)} /></label>
     <label className="full">SEO title<input value={form.seoTitle || ''} onChange={(e) => field('seoTitle', e.target.value)} /></label>

@@ -41,7 +41,8 @@ let currentMedia = [
   {
     _id: 'media-avatar-1',
     filename: 'avatar.jpg',
-    url: '/placeholder.jpg',
+    url: '/avatar.jpg',
+    thumbnailUrl: '/avatar.jpg',
     altText: 'Choyon Dhor profile photo',
     caption: 'Choyon Dhor – Lead Researcher & Developer',
     category: 'Profile',
@@ -50,7 +51,8 @@ let currentMedia = [
   {
     _id: 'media-project-1',
     filename: 'project-cover.jpg',
-    url: '/placeholder.jpg',
+    url: '/project-cover.jpg',
+    thumbnailUrl: '/project-cover.jpg',
     altText: 'Research and project banner',
     caption: 'AI and Robotics System Interface',
     category: 'Projects',
@@ -268,16 +270,22 @@ export default async function handler(req, res) {
       if (req.method === 'POST') {
         const body = await parseBody(req);
         const newAsset = {
-          _id: 'media-' + Date.now(),
-          filename: 'media-' + Date.now() + '.jpg',
-          url: '/placeholder.jpg',
-          altText: '',
-          caption: '',
-          category: 'General',
+          _id: body._id || ('media-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6)),
+          filename: body.filename || body.originalName || ('media-' + Date.now() + '.jpg'),
+          originalName: body.originalName || body.filename || 'media',
+          url: body.url || '/placeholder.jpg',
+          thumbnailUrl: body.thumbnailUrl || body.url || '/placeholder.jpg',
+          altText: body.altText || '',
+          caption: body.caption || '',
+          category: body.category || 'General',
+          mimeType: body.mimeType || 'image/jpeg',
+          fileType: body.fileType || 'image',
+          fileSize: body.fileSize || 0,
+          createdAt: new Date().toISOString(),
           ...body
         };
-        currentMedia.push(newAsset);
-        return sendJson(res, 201, { asset: newAsset, media: newAsset });
+        currentMedia.unshift(newAsset);
+        return sendJson(res, 201, { asset: newAsset, media: newAsset, assets: [newAsset] });
       }
       if (req.method === 'PATCH' || req.method === 'PUT') {
         const body = await parseBody(req);

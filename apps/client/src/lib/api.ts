@@ -22,7 +22,7 @@ export const api = axios.create({
 
 export function mediaUrl(path?: string): string {
   if (!path) return '';
-  if (/^https?:\/\//.test(path)) return path;
+  if (/^https?:\/\//i.test(path) || path.startsWith('data:') || path.startsWith('blob:')) return path;
   return `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
 }
 

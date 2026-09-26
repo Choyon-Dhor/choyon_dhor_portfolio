@@ -1,8 +1,9 @@
-import { Save } from 'lucide-react';
+import { Save, Upload } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { api } from '../../lib/api';
+import { readFileAsDataUrl } from '../../lib/fileHelper';
 import type { SiteSettings } from '../../types';
 import { AdminHeader } from './AdminDashboardPage';
 
@@ -43,15 +44,58 @@ export function SettingsPage() {
       <label>Location<input value={form.location} onChange={(e) => set('location', e.target.value)} /></label>
       <label>Email<input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} /></label>
       <label className="full">Availability text<input value={form.availability} onChange={(e) => set('availability', e.target.value)} /></label>
-      <label>Primary portrait URL<input value={form.profileImage} onChange={(e) => set('profileImage', e.target.value)} /></label>
-      <label>Primary portrait alt text<input value={form.profileImageAlt} onChange={(e) => set('profileImageAlt', e.target.value)} /></label>
-      <label className="full">Primary portrait caption<input value={form.profileImageCaption} onChange={(e) => set('profileImageCaption', e.target.value)} /></label>
+      <div className="full form-grid" style={{ padding: 0, margin: 0 }}>
+        <div>
+          <label>Primary portrait URL
+            <input value={form.profileImage || ''} onChange={(e) => set('profileImage', e.target.value)} placeholder="https://... or upload image" />
+          </label>
+          <label className="button secondary" style={{ cursor: 'pointer', marginTop: '0.4rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
+            <Upload size={14} /> Upload portrait photo
+            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (f) {
+                const url = await readFileAsDataUrl(f);
+                set('profileImage', url);
+                toast.success('Portrait selected! Click Save settings to apply.');
+              }
+            }} />
+          </label>
+        </div>
+        <label>Primary portrait alt text<input value={form.profileImageAlt || ''} onChange={(e) => set('profileImageAlt', e.target.value)} /></label>
+      </div>
+      <label className="full">Primary portrait caption<input value={form.profileImageCaption || ''} onChange={(e) => set('profileImageCaption', e.target.value)} /></label>
       <label>Portrait focal X<input type="number" min={0} max={100} value={form.profileImageFocalX} onChange={(e) => set('profileImageFocalX', Number(e.target.value))} /></label>
       <label>Portrait focal Y<input type="number" min={0} max={100} value={form.profileImageFocalY} onChange={(e) => set('profileImageFocalY', Number(e.target.value))} /></label>
-      <label>Alternate portrait URL<input value={form.alternateProfileImage} onChange={(e) => set('alternateProfileImage', e.target.value)} /></label>
-      <label>Alternate portrait alt<input value={form.alternateProfileImageAlt} onChange={(e) => set('alternateProfileImageAlt', e.target.value)} /></label>
-      <label>Transparent portrait URL<input value={form.transparentProfileImage} onChange={(e) => set('transparentProfileImage', e.target.value)} /></label>
-      <label>Transparent portrait alt<input value={form.transparentProfileImageAlt} onChange={(e) => set('transparentProfileImageAlt', e.target.value)} /></label>
+      <div>
+        <label>Alternate portrait URL<input value={form.alternateProfileImage || ''} onChange={(e) => set('alternateProfileImage', e.target.value)} /></label>
+        <label className="button secondary" style={{ cursor: 'pointer', marginTop: '0.4rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
+          <Upload size={14} /> Upload alternate
+          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
+            const f = e.target.files?.[0];
+            if (f) {
+              const url = await readFileAsDataUrl(f);
+              set('alternateProfileImage', url);
+              toast.success('Alternate portrait selected! Click Save settings.');
+            }
+          }} />
+        </label>
+      </div>
+      <label>Alternate portrait alt<input value={form.alternateProfileImageAlt || ''} onChange={(e) => set('alternateProfileImageAlt', e.target.value)} /></label>
+      <div>
+        <label>Transparent portrait URL<input value={form.transparentProfileImage || ''} onChange={(e) => set('transparentProfileImage', e.target.value)} /></label>
+        <label className="button secondary" style={{ cursor: 'pointer', marginTop: '0.4rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
+          <Upload size={14} /> Upload transparent PNG
+          <input type="file" accept="image/png,image/webp" style={{ display: 'none' }} onChange={async (e) => {
+            const f = e.target.files?.[0];
+            if (f) {
+              const url = await readFileAsDataUrl(f);
+              set('transparentProfileImage', url);
+              toast.success('Transparent portrait selected! Click Save settings.');
+            }
+          }} />
+        </label>
+      </div>
+      <label>Transparent portrait alt<input value={form.transparentProfileImageAlt || ''} onChange={(e) => set('transparentProfileImageAlt', e.target.value)} /></label>
       <label>Resume URL<input placeholder="/uploads/resume.pdf or https://..." value={form.resumeUrl} onChange={(e) => set('resumeUrl', e.target.value)} /><small>Optional. If this is empty, the hero button will show a CV request email link instead of opening a file.</small></label>
       <label>Hero primary CTA label<input value={form.heroPrimaryCtaLabel} onChange={(e) => set('heroPrimaryCtaLabel', e.target.value)} /></label>
       <label>Hero primary CTA URL<input value={form.heroPrimaryCtaUrl} onChange={(e) => set('heroPrimaryCtaUrl', e.target.value)} /></label>
