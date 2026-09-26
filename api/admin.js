@@ -1,64 +1,5 @@
 import crypto from 'node:crypto';
-import { initialSiteSettings, pages as defaultPages, content as defaultContent } from './_lib/starter-data.js';
-
-let currentSettings = { ...initialSiteSettings };
-let currentPages = defaultPages.map((p, i) => ({
-  _id: p._id || p.slug || `page-${i + 1}`,
-  ...p,
-  _id: p._id || p.slug || `page-${i + 1}`
-}));
-let currentContent = defaultContent.map((c, i) => ({
-  _id: c._id || c.slug || `item-${i + 1}`,
-  ...c,
-  _id: c._id || c.slug || `item-${i + 1}`
-}));
-let currentMessages = [
-  {
-    _id: 'msg-seed-1',
-    name: 'Dr. Sarah Mitchell',
-    email: 's.mitchell@research-lab.org',
-    subject: 'Collaboration inquiry on Time-Series AI',
-    organization: 'Neural Systems Lab',
-    inquiryType: 'Research Collaboration',
-    message: 'Hello Choyon, I reviewed your work on time-series forecasting and explainable AI models. We would love to discuss a potential joint research initiative.',
-    status: 'new',
-    createdAt: new Date(Date.now() - 3600000 * 24).toISOString()
-  },
-  {
-    _id: 'msg-seed-2',
-    name: 'Alexandre Chen',
-    email: 'alex.chen@techventures.io',
-    subject: 'Consulting and Engineering Project',
-    organization: 'Horizon Robotics',
-    inquiryType: 'Project Inquiry',
-    message: 'Hi Choyon, your portfolio projects show impressive depth in robotics and machine learning. Are you available for a remote consultancy or internship?',
-    status: 'read',
-    createdAt: new Date(Date.now() - 3600000 * 48).toISOString()
-  }
-];
-
-let currentMedia = [
-  {
-    _id: 'media-avatar-1',
-    filename: 'avatar.jpg',
-    url: '/avatar.jpg',
-    thumbnailUrl: '/avatar.jpg',
-    altText: 'Choyon Dhor profile photo',
-    caption: 'Choyon Dhor – Lead Researcher & Developer',
-    category: 'Profile',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'media-project-1',
-    filename: 'project-cover.jpg',
-    url: '/project-cover.jpg',
-    thumbnailUrl: '/project-cover.jpg',
-    altText: 'Research and project banner',
-    caption: 'AI and Robotics System Interface',
-    category: 'Projects',
-    createdAt: new Date().toISOString()
-  }
-];
+import { store } from './_lib/store.js';
 
 function setCors(req, res) {
   const origin = req.headers?.origin;
@@ -126,15 +67,11 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (!checkAuth(req)) {
-    return sendJson(res, 401, { message: 'Authentication required' });
-  }
-
   // Extract slug from req.query.slug or URL
   let slug = req.query?.slug;
   if (!slug) {
     const url = new URL(req.url, 'http://localhost');
-    const path = url.pathname.replace(/^\/api\/admin\/?/, '');
+    const path = url.pathname.replace(/^\/api\/(admin|public)\/?/, '');
     slug = path.split('/').filter(Boolean);
   } else if (typeof slug === 'string') {
     slug = slug.split('/').filter(Boolean);
@@ -142,64 +79,111 @@ export default async function handler(req, res) {
     slug = slug.flatMap(s => typeof s === 'string' ? s.split('/') : s).filter(Boolean);
   }
 
+  const parsedUrl = new URL(req.url, 'http://localhost');
+  const isPublic = req.query?.public === 'true' || parsedUrl.pathname.startsWith('/api/public');
+
+  // Handle public requests without requiring auth
+  if (isPublic) {
+    const pubEndpoint = slug[0] || 'bootstrap';
+    if (pubEndpoint === 'bootstrap') {
+      return sendJson(res, 200, {
+        settings: store.getSettings(),
+        pages: store.getPages(),
+        items: store.getContent()
+      });
+    }
+    if (pubEndpoint === 'content') {
+      return sendJson(res, 200, {
+        items: store.getContent(),
+        content: store.getContent()
+      });
+    }
+    if (pubEndpoint === 'contact' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const newMsg = {
+        _id: 'msg-' + Date.now(),
+        name: body.name || 'Anonymous',
+        email: body.email || '',
+        subject: body.subject || 'Portfolio transmission',
+        message: body.message || '',
+        status: 'new',
+        createdAt: new Date().toISOString()
+      };
+      const msgs = store.getMessages();
+      msgs.unshift(newMsg);
+      store.setMessages(msgs);
+      return sendJson(res, 201, { id: newMsg._id, message: 'Transmission received successfully.' });
+    }
+  }
+
+  if (!checkAuth(req)) {
+    return sendJson(res, 401, { message: 'Authentication required' });
+  }
+
   const endpoint = slug[0] || 'dashboard';
   const subId = slug[1];
 
   try {
     if (endpoint === 'dashboard') {
+      const allContent = store.getContent();
+      const allMessages = store.getMessages();
+      const allPages = store.getPages();
+      const allMedia = store.getMedia();
       const typeCounts = {};
-      currentContent.forEach(item => {
+      allContent.forEach(item => {
         typeCounts[item.type] = (typeCounts[item.type] || 0) + 1;
       });
       const contentCounts = Object.entries(typeCounts).map(([_id, count]) => ({ _id, count }));
       return sendJson(res, 200, {
         contentCounts,
-        unreadMessages: currentMessages.filter(m => m.status === 'new').length,
-        totalPages: currentPages.length,
-        recentMessages: currentMessages.slice(0, 5),
-        mediaCount: currentMedia.length
+        unreadMessages: allMessages.filter(m => m.status === 'new').length,
+        totalPages: allPages.length,
+        recentMessages: allMessages.slice(0, 5),
+        mediaCount: allMedia.length
       });
     }
 
     if (endpoint === 'settings') {
       if (req.method === 'GET') {
-        return sendJson(res, 200, { settings: currentSettings });
+        return sendJson(res, 200, { settings: store.getSettings() });
       }
       if (req.method === 'PUT') {
         const body = await parseBody(req);
-        currentSettings = { ...currentSettings, ...body, key: 'primary' };
-        return sendJson(res, 200, { settings: currentSettings });
+        const updated = store.updateSettings(body);
+        return sendJson(res, 200, { settings: updated });
       }
     }
 
     if (endpoint === 'pages') {
+      let pages = store.getPages();
       if (req.method === 'GET') {
-        return sendJson(res, 200, { pages: currentPages });
+        return sendJson(res, 200, { pages });
       }
       if (req.method === 'POST') {
         const body = await parseBody(req);
         const newPage = { _id: body._id || body.slug || ('page-' + Date.now()), ...body };
-        currentPages.push(newPage);
+        pages.push(newPage);
+        store.setPages(pages);
         return sendJson(res, 201, { page: newPage });
       }
       if (req.method === 'PUT') {
         const body = await parseBody(req);
-        const idx = currentPages.findIndex(p => p._id === subId || p.slug === subId || (body.slug && p.slug === body.slug));
+        const idx = pages.findIndex(p => p._id === subId || p.slug === subId || (body.slug && p.slug === body.slug));
         if (idx !== -1) {
-          currentPages[idx] = { ...currentPages[idx], ...body };
-          return sendJson(res, 200, { page: currentPages[idx] });
+          pages[idx] = { ...pages[idx], ...body };
+          store.setPages(pages);
+          return sendJson(res, 200, { page: pages[idx] });
         }
         const created = { _id: subId && subId !== 'undefined' ? subId : (body.slug || 'page-' + Date.now()), ...body };
-        currentPages.push(created);
+        pages.push(created);
+        store.setPages(pages);
         return sendJson(res, 200, { page: created });
       }
       if (req.method === 'DELETE') {
-        if (!subId || subId === 'undefined') {
-          res.statusCode = 204;
-          res.end();
-          return;
+        if (subId && subId !== 'undefined') {
+          pages = pages.filter(p => p._id !== subId && p.slug !== subId);
+          store.setPages(pages);
         }
-        currentPages = currentPages.filter(p => p._id !== subId && p.slug !== subId);
         res.statusCode = 204;
         res.end();
         return;
@@ -207,35 +191,37 @@ export default async function handler(req, res) {
     }
 
     if (endpoint === 'content') {
+      let contentList = store.getContent();
       if (req.method === 'GET') {
         const type = req.query?.type;
-        const items = type ? currentContent.filter(c => c.type === type) : currentContent;
-        return sendJson(res, 200, { items });
+        const items = type ? contentList.filter(c => c.type === type) : contentList;
+        return sendJson(res, 200, { items, content: items });
       }
       if (req.method === 'POST') {
         const body = await parseBody(req);
         const newItem = { _id: body._id || body.slug || ('item-' + Date.now()), ...body };
-        currentContent.push(newItem);
+        contentList.push(newItem);
+        store.setContent(contentList);
         return sendJson(res, 201, { item: newItem });
       }
       if (req.method === 'PUT') {
         const body = await parseBody(req);
-        const idx = currentContent.findIndex(c => c._id === subId || c.slug === subId || (body.slug && c.slug === body.slug));
+        const idx = contentList.findIndex(c => c._id === subId || c.slug === subId || (body.slug && c.slug === body.slug));
         if (idx !== -1) {
-          currentContent[idx] = { ...currentContent[idx], ...body };
-          return sendJson(res, 200, { item: currentContent[idx] });
+          contentList[idx] = { ...contentList[idx], ...body };
+          store.setContent(contentList);
+          return sendJson(res, 200, { item: contentList[idx] });
         }
         const created = { _id: subId && subId !== 'undefined' ? subId : (body.slug || 'item-' + Date.now()), ...body };
-        currentContent.push(created);
+        contentList.push(created);
+        store.setContent(contentList);
         return sendJson(res, 200, { item: created });
       }
       if (req.method === 'DELETE') {
-        if (!subId || subId === 'undefined') {
-          res.statusCode = 204;
-          res.end();
-          return;
+        if (subId && subId !== 'undefined') {
+          contentList = contentList.filter(c => c._id !== subId && c.slug !== subId);
+          store.setContent(contentList);
         }
-        currentContent = currentContent.filter(c => c._id !== subId && c.slug !== subId);
         res.statusCode = 204;
         res.end();
         return;
@@ -243,20 +229,23 @@ export default async function handler(req, res) {
     }
 
     if (endpoint === 'messages') {
+      let messages = store.getMessages();
       if (req.method === 'GET') {
-        return sendJson(res, 200, { messages: currentMessages });
+        return sendJson(res, 200, { messages });
       }
       if (req.method === 'PATCH') {
         const body = await parseBody(req);
-        const msg = currentMessages.find(m => m._id === subId || m.id === subId);
+        const msg = messages.find(m => m._id === subId || m.id === subId);
         if (msg) {
           if (body.status) msg.status = body.status;
+          store.setMessages(messages);
           return sendJson(res, 200, { message: msg });
         }
         return sendJson(res, 200, { message: { _id: subId, status: body.status || 'read' } });
       }
       if (req.method === 'DELETE') {
-        currentMessages = currentMessages.filter(m => m._id !== subId && m.id !== subId);
+        messages = messages.filter(m => m._id !== subId && m.id !== subId);
+        store.setMessages(messages);
         res.statusCode = 204;
         res.end();
         return;
@@ -264,8 +253,9 @@ export default async function handler(req, res) {
     }
 
     if (endpoint === 'media') {
+      let mediaList = store.getMedia();
       if (req.method === 'GET') {
-        return sendJson(res, 200, { assets: currentMedia, media: currentMedia });
+        return sendJson(res, 200, { assets: mediaList, media: mediaList });
       }
       if (req.method === 'POST') {
         const body = await parseBody(req);
@@ -284,22 +274,26 @@ export default async function handler(req, res) {
           createdAt: new Date().toISOString(),
           ...body
         };
-        currentMedia.unshift(newAsset);
+        mediaList.unshift(newAsset);
+        store.setMedia(mediaList);
         return sendJson(res, 201, { asset: newAsset, media: newAsset, assets: [newAsset] });
       }
       if (req.method === 'PATCH' || req.method === 'PUT') {
         const body = await parseBody(req);
-        const idx = currentMedia.findIndex(m => m._id === subId || m.assetId === subId || m.url === subId);
+        const idx = mediaList.findIndex(m => m._id === subId || m.assetId === subId || m.url === subId);
         if (idx !== -1) {
-          currentMedia[idx] = { ...currentMedia[idx], ...body };
-          return sendJson(res, 200, { asset: currentMedia[idx], media: currentMedia[idx] });
+          mediaList[idx] = { ...mediaList[idx], ...body };
+          store.setMedia(mediaList);
+          return sendJson(res, 200, { asset: mediaList[idx], media: mediaList[idx] });
         }
         const created = { _id: subId && subId !== 'undefined' ? subId : ('media-' + Date.now()), url: '/placeholder.jpg', ...body };
-        currentMedia.push(created);
+        mediaList.push(created);
+        store.setMedia(mediaList);
         return sendJson(res, 200, { asset: created, media: created });
       }
       if (req.method === 'DELETE') {
-        currentMedia = currentMedia.filter(m => m._id !== subId && m.assetId !== subId);
+        mediaList = mediaList.filter(m => m._id !== subId && m.assetId !== subId);
+        store.setMedia(mediaList);
         res.statusCode = 204;
         res.end();
         return;

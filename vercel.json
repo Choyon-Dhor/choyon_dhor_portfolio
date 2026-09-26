@@ -5,6 +5,8 @@
   "rewrites": [
     { "source": "/api/admin/(.*)", "destination": "/api/admin.js?slug=$1" },
     { "source": "/api/admin", "destination": "/api/admin.js" },
+    { "source": "/api/public/(.*)", "destination": "/api/admin.js?public=true&slug=$1" },
+    { "source": "/api/public", "destination": "/api/admin.js?public=true" },
     { "source": "/((?!api/|uploads/).*)", "destination": "/index.html" }
   ]
 }

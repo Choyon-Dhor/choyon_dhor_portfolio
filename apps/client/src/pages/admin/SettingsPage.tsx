@@ -2,7 +2,7 @@ import { Save, Upload } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { api } from '../../lib/api';
+import { api, mediaUrl } from '../../lib/api';
 import { readFileAsDataUrl } from '../../lib/fileHelper';
 import type { SiteSettings } from '../../types';
 import { AdminHeader } from './AdminDashboardPage';
@@ -12,14 +12,34 @@ export function SettingsPage() {
   const { data } = useQuery({ queryKey: ['admin-settings'], queryFn: async () => (await api.get<{ settings: SiteSettings }>('/admin/settings')).data.settings });
   const [form, setForm] = useState<SiteSettings | null>(null);
 
-  useEffect(() => { if (data) setForm(data); }, [data]);
+  useEffect(() => {
+    if (data) {
+      // Check if we have locally cached settings
+      try {
+        const local = localStorage.getItem('nexus_custom_settings');
+        if (local) {
+          const parsed = JSON.parse(local);
+          setForm({ ...data, ...parsed });
+          return;
+        }
+      } catch {}
+      setForm(data);
+    }
+  }, [data]);
 
   const save = useMutation({
-    mutationFn: async (value: SiteSettings) => api.put('/admin/settings', value),
-    onSuccess: () => {
+    mutationFn: async (value: SiteSettings) => {
+      try {
+        localStorage.setItem('nexus_custom_settings', JSON.stringify(value));
+      } catch {}
+      return api.put('/admin/settings', value);
+    },
+    onSuccess: (_, variables) => {
+      client.setQueryData(['admin-settings'], { settings: variables });
+      client.setQueryData(['bootstrap'], (old: any) => old ? { ...old, settings: variables } : old);
       client.invalidateQueries({ queryKey: ['admin-settings'] });
       client.invalidateQueries({ queryKey: ['bootstrap'] });
-      toast.success('Site settings updated.');
+      toast.success('Site settings updated and applied across portfolio!');
     },
     onError: (error) => toast.error(error.message)
   });
@@ -46,10 +66,19 @@ export function SettingsPage() {
       <label className="full">Availability text<input value={form.availability} onChange={(e) => set('availability', e.target.value)} /></label>
       <div className="full form-grid" style={{ padding: 0, margin: 0 }}>
         <div>
-          <label>Primary portrait URL
-            <input value={form.profileImage || ''} onChange={(e) => set('profileImage', e.target.value)} placeholder="https://... or upload image" />
-          </label>
-          <label className="button secondary" style={{ cursor: 'pointer', marginTop: '0.4rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
+          <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+            {form.profileImage && (
+              <div style={{ width: 56, height: 56, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(191, 214, 255, 0.4)', flexShrink: 0, background: '#111' }}>
+                <img src={mediaUrl(form.profileImage)} alt="Portrait preview" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: `${form.profileImageFocalX || 50}% ${form.profileImageFocalY || 50}%` }} />
+              </div>
+            )}
+            <div style={{ flex: 1 }}>
+              <label style={{ margin: 0 }}>Primary portrait URL
+                <input value={form.profileImage || ''} onChange={(e) => set('profileImage', e.target.value)} placeholder="https://... or upload image" />
+              </label>
+            </div>
+          </div>
+          <label className="button secondary" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem' }}>
             <Upload size={14} /> Upload portrait photo
             <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
               const f = e.target.files?.[0];

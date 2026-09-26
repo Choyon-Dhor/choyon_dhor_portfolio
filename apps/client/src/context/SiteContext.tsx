@@ -16,18 +16,31 @@ export function SiteProvider({ children }: { children: ReactNode }) {
   const query = useQuery({
     queryKey: ['bootstrap'],
     queryFn: async () => {
+      let baseData = fallbackBootstrapData;
       try {
         const res = await api.get<BootstrapData>('/public/bootstrap');
         if (res.data && res.data.settings) {
-          return res.data;
+          baseData = res.data;
         }
-        return fallbackBootstrapData;
       } catch (err) {
         console.warn('API bootstrap call failed, using bundled starter data:', err);
-        return fallbackBootstrapData;
       }
+
+      // Merge local settings cache if present
+      try {
+        const local = localStorage.getItem('nexus_custom_settings');
+        if (local) {
+          const parsed = JSON.parse(local);
+          baseData = {
+            ...baseData,
+            settings: { ...baseData.settings, ...parsed }
+          };
+        }
+      } catch {}
+
+      return baseData;
     },
-    staleTime: 60_000
+    staleTime: 5_000
   });
 
   const data: BootstrapData = query.data || fallbackBootstrapData;

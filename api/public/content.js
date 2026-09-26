@@ -1,4 +1,4 @@
-import { content } from '../_lib/starter-data.js';
+import { store } from '../_lib/store.js';
 
 function setCors(req, res) {
   const origin = req.headers?.origin;
@@ -23,5 +23,5 @@ export default function handler(req, res) {
 
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({ items: content }));
+  res.end(JSON.stringify({ items: store.getContent() }));
 }
