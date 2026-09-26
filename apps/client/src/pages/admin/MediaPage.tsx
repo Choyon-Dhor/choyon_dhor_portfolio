@@ -44,15 +44,17 @@ export function MediaPage() {
     try {
       for (const file of Array.from(files)) {
         const dataUrl = await readFileAsDataUrl(file);
+        if (!dataUrl) continue;
+        const actualSize = Math.round((dataUrl.length * 3) / 4);
         const payload = {
           _id: 'media-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
           filename: file.name,
           originalName: file.name,
           url: dataUrl,
           thumbnailUrl: dataUrl,
-          mimeType: file.type || 'image/jpeg',
+          mimeType: dataUrl.startsWith('data:image/webp') ? 'image/webp' : (file.type || 'image/jpeg'),
           fileType: file.type.startsWith('video') ? 'video' : file.type.includes('pdf') ? 'pdf' : 'image',
-          fileSize: file.size,
+          fileSize: actualSize,
           altText: file.name.replace(/\.[^/.]+$/, ''),
           caption: '',
           category: 'Uploads'
