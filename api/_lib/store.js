@@ -49,12 +49,42 @@ let siteMedia = [
     createdAt: new Date().toISOString()
   },
   {
-    _id: 'media-project-1',
-    filename: 'project-cover.jpg',
-    url: '/project-cover.jpg',
-    thumbnailUrl: '/project-cover.jpg',
-    altText: 'Research and project banner',
-    caption: 'AI and Robotics System Interface',
+    _id: 'media-project-vm',
+    filename: 'bytecode-vm.png',
+    url: '/projects/bytecode-vm.png',
+    thumbnailUrl: '/projects/bytecode-vm.png',
+    altText: 'Custom Bytecode Virtual Machine & Expression Evaluator',
+    caption: 'Pure Python 3 VM with Stack Visualizer',
+    category: 'Projects',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: 'media-project-compiler',
+    filename: 'cc-compiler.png',
+    url: '/projects/cc-compiler.png',
+    thumbnailUrl: '/projects/cc-compiler.png',
+    altText: 'Compiler Construction Lab Engine',
+    caption: 'Flex & Bison C Mini-Compiler with TAC Generation',
+    category: 'Projects',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: 'media-project-digit',
+    filename: 'digit-recognition.png',
+    url: '/projects/digit-recognition.png',
+    thumbnailUrl: '/projects/digit-recognition.png',
+    altText: 'Handwritten Digit Recognition CNN',
+    caption: 'PyTorch CNN with 99.06% accuracy on MNIST',
+    category: 'Projects',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: 'media-project-campusassist',
+    filename: 'campusassist.png',
+    url: '/projects/campusassist.png',
+    thumbnailUrl: '/projects/campusassist.png',
+    altText: 'CampusAssist Portal',
+    caption: 'Metropolitan University Learning Assistant Platform',
     category: 'Projects',
     createdAt: new Date().toISOString()
   }

@@ -97,7 +97,7 @@ export function HomePage() {
 
   const research = byType('research');
   const featuredResearch = research.find((item) => item.featured) ?? research[0];
-  const featuredProjects = byType('project').filter((item) => item.featured).slice(0, 3);
+  const featuredProjects = byType('project').filter((item) => item.featured).slice(0, 6);
   const featuredPublication = byType('publication').find((item) => item.featured) ?? byType('publication')[0];
   const featuredEvent = byType('event').find((item) => item.featured) ?? byType('event')[0];
   const leadership = byType('experience').slice(0, 2);
@@ -290,7 +290,7 @@ export function HomePage() {
 
     <section className="section container">
       <div className="section-heading"><div><span className="eyebrow">FEATURED PROJECTS</span><h2>Research-driven and product-minded builds</h2></div><Link to="/projects">Explore projects <ArrowRight size={16} /></Link></div>
-      <div className="card-grid three">{featuredProjects.map((item, index) => <ContentCard key={item._id} item={item} index={index} detailBase="/projects" />)}</div>
+      <div className={`card-grid ${featuredProjects.length % 2 === 0 ? 'two' : 'three'}`}>{featuredProjects.map((item, index) => <ContentCard key={item._id} item={item} index={index} detailBase="/projects" />)}</div>
     </section>
 
     <section className="section container split-section split-section--balanced">

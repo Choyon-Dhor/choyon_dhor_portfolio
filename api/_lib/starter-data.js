@@ -26,12 +26,12 @@ export const initialSiteSettings = {
   "heroSecondaryCtaLabel": "Explore Projects",
   "heroSecondaryCtaUrl": "/projects",
   "heroOrbitLabels": [
-    "Time-Series Forecasting",
-    "Explainable AI",
+    "Compilers & Systems",
+    "Deep Learning & Vision",
+    "Virtual Machines",
+    "Full-Stack Web",
     "Energy Informatics",
-    "Machine Learning",
-    "Leadership",
-    "Product Building"
+    "Explainable AI"
   ],
   "stats": [
     {
@@ -376,105 +376,250 @@ const rawContent = [
     ]
   },
   {
-    "type": "publication",
-    "slug": "context-aware-stlf-manuscript",
-    "title": "Context-Aware and Disturbance-Informed Short-Term Load Forecasting: Comparative Study Manuscript",
-    "shortTitle": "STLF Manuscript",
-    "eyebrow": "MANUSCRIPT",
-    "summary": "The manuscript version of the short-term load forecasting study is currently under review.",
-    "content": "This manuscript extends the presented work into a fuller academic article. Public-facing claims should remain conservative until the review process is complete.",
-    "category": "Manuscript",
-    "status": "Under Review",
+    "type": "project",
+    "slug": "bytecode-virtual-machine",
+    "title": "Custom Bytecode Virtual Machine & Expression Evaluator",
+    "shortTitle": "Bytecode VM Engine",
+    "eyebrow": "LANGUAGE ENGINE",
+    "summary": "A pure Python 3 stack-based bytecode virtual machine, recursive descent parser, and execution visualizer built with zero eval/exec dependencies.",
+    "content": "A pure Python 3 language engine implementing an end-to-end compilation pipeline: lexical tokenizer, recursive descent AST parser, bytecode compiler with 18+ opcodes (PUSH, ADD, SUB, MUL, DIV, JMP, JMP_IF_FALSE, STORE, LOAD, CALL, RET), and a stack-based virtual machine execution loop with an interactive visualizer showing operand stack changes, instruction pointer steps, and disassembled bytecode.",
+    "category": "Systems & Compilers",
+    "status": "Functional / Live",
     "featured": true,
     "order": 1,
+    "coverImage": "/projects/bytecode-vm.png",
+    "coverImageAlt": "Bytecode Virtual Machine Visualizer Interface",
+    "coverImageCaption": "Interactive VM with AST hierarchy, stack animator, and bytecode disassembler",
+    "technologies": [
+      "Python 3",
+      "Bytecode VM",
+      "Stack Machine",
+      "AST Parser",
+      "Disassembler",
+      "Next.js"
+    ],
     "tags": [
-      "Under Review",
-      "Load Forecasting",
-      "Research Manuscript"
+      "Virtual Machine",
+      "Compiler",
+      "Systems Programming",
+      "Python",
+      "Bytecode",
+      "Visualizer"
     ],
     "metrics": [
       {
-        "label": "Status",
-        "value": "Under Review"
+        "label": "Architecture",
+        "value": "Stack-Based VM"
       },
       {
-        "label": "Type",
-        "value": "Manuscript"
+        "label": "Safety",
+        "value": "Zero eval/exec"
+      },
+      {
+        "label": "Opcodes",
+        "value": "18+ Instructions"
+      }
+    ],
+    "links": [
+      {
+        "label": "Live Interactive Demo",
+        "url": "https://bytecode-virtual-machine-git-main-choyon-dhors-projects.vercel.app/"
+      },
+      {
+        "label": "GitHub Repository",
+        "url": "https://github.com/Choyon-Dhor/Bytecode-Virtual-Machine"
       }
     ],
     "metadata": {
-      "authors": [
-        "Choyon Dhor"
-      ],
-      "venue": "",
-      "doi": "",
-      "note": "Do not show this as published until the admin updates the status."
+      "demoUrl": "https://bytecode-virtual-machine-git-main-choyon-dhors-projects.vercel.app/",
+      "githubUrl": "https://github.com/Choyon-Dhor/Bytecode-Virtual-Machine",
+      "architecture": "Stack-based virtual machine with execution visualizer",
+      "language": "Pure Python 3"
     }
   },
   {
-    "type": "publication",
-    "slug": "context-aware-stlf-conference-presentation",
-    "title": "Conference Presentation: Context-Aware and Disturbance-Informed Short-Term Load Forecasting",
-    "shortTitle": "STLF Presentation",
-    "eyebrow": "CONFERENCE PRESENTATION",
-    "summary": "The work was presented at a conference and is represented separately from the manuscript status.",
-    "content": "This entry documents the presentation version of the research, distinct from any manuscript or future publication status.",
-    "category": "Conference Presentation",
-    "status": "Conference Presented",
+    "type": "project",
+    "slug": "cc-lab-compiler",
+    "title": "Metropolitan University Compiler Construction Engine",
+    "shortTitle": "Flex/Bison Mini-Compiler",
+    "eyebrow": "COMPILER CONSTRUCTION",
+    "summary": "An end-to-end native compiler front-end built with Flex and Bison in C for Metropolitan University CSE, featuring lexical analysis, AST construction, nested symbol table, and Three-Address Code (TAC) generation.",
+    "content": "Official repository for the Compiler Construction Laboratory Project at Metropolitan University, Bangladesh, Department of CSE, led by Choyon Dhor as Team Lead. It takes a custom statically typed language (.mc files) through Lexical Analysis (Flex), LALR Parsing and grammar verification (Bison), Abstract Syntax Tree (AST) synthesis, nested-scope semantic type analysis, and intermediate representation code generation emitting Three-Address Code (TAC). Built natively for Ubuntu Linux with modular C architecture.",
+    "category": "Systems & Compilers",
+    "status": "Academic Functional",
+    "featured": true,
     "order": 2,
+    "coverImage": "/projects/cc-compiler.png",
+    "coverImageAlt": "Compiler Pipeline Interface and Three-Address Code",
+    "coverImageCaption": "Lexical token stream, AST visualization, nested symbol table, and TAC emission",
+    "technologies": [
+      "C",
+      "Flex",
+      "Bison (LALR)",
+      "AST",
+      "Three-Address Code",
+      "Linux / Ubuntu",
+      "Makefile"
+    ],
     "tags": [
-      "Conference Presented",
-      "Presentation"
+      "Compiler Construction",
+      "Flex & Bison",
+      "C",
+      "Three-Address Code",
+      "Systems Programming",
+      "Team Lead"
     ],
     "metrics": [
       {
-        "label": "Status",
-        "value": "Conference Presented"
+        "label": "Role",
+        "value": "Team Lead"
       },
       {
-        "label": "Format",
-        "value": "Presentation"
+        "label": "Pipeline",
+        "value": "Lexer > Parser > AST > TAC"
+      },
+      {
+        "label": "Environment",
+        "value": "Ubuntu Linux"
       }
-    ]
+    ],
+    "links": [
+      {
+        "label": "GitHub Repository",
+        "url": "https://github.com/TeamBytebuilders/CC-Lab-Project-Team-Bytebuilders"
+      },
+      {
+        "label": "Team Lead Mirror",
+        "url": "https://github.com/Choyon-Dhor/CC-Lab-Project-Team-Bytebuilders"
+      }
+    ],
+    "metadata": {
+      "githubUrl": "https://github.com/TeamBytebuilders/CC-Lab-Project-Team-Bytebuilders",
+      "note": "Native Ubuntu Linux C/Flex/Bison project executable via terminal and Makefile."
+    }
   },
   {
     "type": "project",
-    "slug": "stlf-forecasting-system",
-    "title": "Short-Term Load Forecasting System",
-    "eyebrow": "RESEARCH VEHICLE",
-    "summary": "A reproducible machine-learning pipeline for contextual load forecasting experiments.",
-    "content": "The system prepares time-series data, engineers contextual and disturbance features, trains multiple model families and compares them with chronological validation.",
-    "category": "Research Project",
-    "status": "Functional",
+    "slug": "handwritten-digit-recognition-cnn",
+    "title": "Deep Learning Handwritten Digit Recognition (CNN)",
+    "shortTitle": "Digit Recognition CNN",
+    "eyebrow": "COMPUTER VISION",
+    "summary": "Deep learning convolutional neural network achieving 99.06% accuracy on MNIST, integrated with interactive canvas drawing and deployed as a live Hugging Face Space.",
+    "content": "Deep Learning-based Handwritten Digit Recognition using Convolutional Neural Networks (CNN) in PyTorch on the MNIST dataset with comprehensive performance evaluation, confusion matrix visualizations, and real-time interactive inference via Gradio on Hugging Face Spaces. Features automated input normalization, feature map extraction, and instantaneous probability distribution over digits 0-9.",
+    "category": "Computer Vision & Deep Learning",
+    "status": "Deployed / Live",
     "featured": true,
-    "order": 1,
+    "order": 3,
+    "coverImage": "/projects/digit-recognition.png",
+    "coverImageAlt": "Hugging Face Space Interactive Canvas and Accuracy Metric",
+    "coverImageCaption": "Real-time canvas drawing inference achieving 99.06% test accuracy on MNIST",
     "technologies": [
-      "Python",
-      "Pandas",
-      "XGBoost",
-      "CatBoost",
-      "LightGBM",
-      "GRU"
+      "PyTorch",
+      "CNN",
+      "Gradio",
+      "Hugging Face Spaces",
+      "Torchvision",
+      "Scikit-Learn",
+      "Matplotlib"
     ],
     "tags": [
-      "AI",
-      "Energy",
-      "Forecasting"
+      "Deep Learning",
+      "CNN",
+      "Computer Vision",
+      "PyTorch",
+      "Hugging Face",
+      "Interactive AI"
     ],
     "metrics": [
       {
-        "label": "Models",
-        "value": "5"
+        "label": "Test Accuracy",
+        "value": "99.06% (MNIST)"
       },
       {
-        "label": "Validation",
-        "value": "Time-series CV"
+        "label": "Framework",
+        "value": "PyTorch + Gradio"
       },
       {
-        "label": "Output",
-        "value": "1-hour forecast"
+        "label": "Deployment",
+        "value": "Hugging Face Spaces"
       }
-    ]
+    ],
+    "links": [
+      {
+        "label": "Live Hugging Face Space",
+        "url": "https://huggingface.co/spaces/ChoyonDhor/hand-written-digit-recognition"
+      },
+      {
+        "label": "GitHub Repository",
+        "url": "https://github.com/Choyon-Dhor/handwritten-digit-recognition-cnn"
+      }
+    ],
+    "metadata": {
+      "demoUrl": "https://huggingface.co/spaces/ChoyonDhor/hand-written-digit-recognition",
+      "githubUrl": "https://github.com/Choyon-Dhor/handwritten-digit-recognition-cnn",
+      "accuracy": "99.06%",
+      "dataset": "MNIST"
+    }
+  },
+  {
+    "type": "project",
+    "slug": "campusassist",
+    "title": "CampusAssist: Metropolitan University Learning Assistant",
+    "shortTitle": "CampusAssist Platform",
+    "eyebrow": "CAMPUS PLATFORM",
+    "summary": "A comprehensive learning and campus assistant platform for Metropolitan University students, featuring class schedules, room allocations, course navigation, and notice broadcasts.",
+    "content": "A full-stack student learning and administrative assistant web application engineered for Metropolitan University. Streamlines daily campus life through unified course schedules, real-time classroom finder, syllabus tracking, teacher consultation hour directories, and exam routines with secure role-based authentication and intuitive dashboard UX.",
+    "category": "Full-Stack Web Application",
+    "status": "Production / Live",
+    "featured": true,
+    "order": 4,
+    "coverImage": "/projects/campusassist.png",
+    "coverImageAlt": "CampusAssist Student Dashboard and Classroom Navigator",
+    "coverImageCaption": "Academic schedule manager, course explorer, and classroom finder interface",
+    "technologies": [
+      "React.js",
+      "Node.js",
+      "Express",
+      "PostgreSQL",
+      "Tailwind CSS",
+      "Netlify"
+    ],
+    "tags": [
+      "Full-Stack",
+      "Web Application",
+      "Campus System",
+      "React",
+      "PostgreSQL",
+      "Education"
+    ],
+    "metrics": [
+      {
+        "label": "Target Userbase",
+        "value": "University Students"
+      },
+      {
+        "label": "Architecture",
+        "value": "React + Node + DB"
+      },
+      {
+        "label": "Live Host",
+        "value": "Netlify"
+      }
+    ],
+    "links": [
+      {
+        "label": "Live Web Portal",
+        "url": "https://effortless-khapse-9143fb.netlify.app/login"
+      },
+      {
+        "label": "GitHub Repository",
+        "url": "https://github.com/Choyon-Dhor/Campusassit"
+      }
+    ],
+    "metadata": {
+      "demoUrl": "https://effortless-khapse-9143fb.netlify.app/login",
+      "githubUrl": "https://github.com/Choyon-Dhor/Campusassit"
+    }
   },
   {
     "type": "project",
@@ -485,8 +630,8 @@ const rawContent = [
     "content": "Findora replaces scattered social media posts with a structured reporting and management flow.",
     "category": "Web Application",
     "status": "In Development",
-    "featured": true,
-    "order": 2,
+    "featured": false,
+    "order": 5,
     "technologies": [
       "HTML",
       "CSS",
@@ -509,7 +654,8 @@ const rawContent = [
     "content": "A concept focused on reducing the gap between motivated students and reliable guidance.",
     "category": "AI Product",
     "status": "Planning",
-    "order": 3,
+    "featured": false,
+    "order": 6,
     "technologies": [
       "Node.js",
       "MongoDB",
@@ -715,43 +861,181 @@ const rawContent = [
   },
   {
     "type": "skill",
-    "slug": "machine-learning",
-    "title": "Machine Learning",
-    "eyebrow": "CAPABILITY",
-    "summary": "Evidence-backed experience in feature engineering, model evaluation and forecasting workflows.",
-    "category": "AI and Data",
-    "status": "Used in Research",
+    "slug": "compiler-construction",
+    "title": "Compiler Construction & Systems Programming",
+    "eyebrow": "SYSTEMS CORE",
+    "summary": "End-to-end compiler engineering: lexical analysis with Flex, LALR grammar parsing with Bison, AST synthesis, nested scope symbol table management, semantic type checking, and Three-Address Code (TAC) generation on Linux/Ubuntu.",
+    "category": "Systems & Compilers",
+    "status": "Lead Developer",
     "order": 1,
+    "technologies": [
+      "Flex",
+      "Bison",
+      "C",
+      "C++",
+      "Three-Address Code",
+      "Linux / Ubuntu",
+      "Makefile"
+    ],
+    "metrics": [
+      {
+        "label": "Pipeline",
+        "value": "Lexer > Parser > AST > TAC"
+      },
+      {
+        "label": "Environment",
+        "value": "Ubuntu Linux"
+      }
+    ]
+  },
+  {
+    "type": "skill",
+    "slug": "virtual-machines",
+    "title": "Virtual Machines & Language Engines",
+    "eyebrow": "ENGINE ARCHITECTURE",
+    "summary": "Design and implementation of pure stack-based bytecode virtual machines, instruction disassemblers, recursive descent expression evaluators, call frame management, and runtime memory stacks built with zero external runtime eval/exec.",
+    "category": "Systems & Compilers",
+    "status": "Production Built",
+    "order": 2,
+    "technologies": [
+      "Python 3",
+      "Bytecode VM",
+      "Stack Machine",
+      "Recursive Descent",
+      "Disassembler",
+      "Opcode Design"
+    ],
+    "metrics": [
+      {
+        "label": "Architecture",
+        "value": "Stack-Based VM"
+      },
+      {
+        "label": "Safety",
+        "value": "Zero eval/exec"
+      }
+    ]
+  },
+  {
+    "type": "skill",
+    "slug": "deep-learning-cv",
+    "title": "Deep Learning & Computer Vision",
+    "eyebrow": "AI & VISION",
+    "summary": "Designing, training and deploying Convolutional Neural Networks (CNNs) in PyTorch. Experienced in feature map extraction, hyperparameter tuning, model evaluation (confusion matrix, precision/recall), and interactive web deployments via Gradio and Hugging Face.",
+    "category": "AI & Machine Learning",
+    "status": "Deployed & Verified",
+    "order": 3,
+    "technologies": [
+      "PyTorch",
+      "CNN",
+      "Torchvision",
+      "Gradio",
+      "Hugging Face Spaces",
+      "NumPy",
+      "Scikit-Learn"
+    ],
+    "metrics": [
+      {
+        "label": "Accuracy",
+        "value": "99.06% on MNIST"
+      },
+      {
+        "label": "Deployment",
+        "value": "Hugging Face Spaces"
+      }
+    ]
+  },
+  {
+    "type": "skill",
+    "slug": "full-stack-web",
+    "title": "Full-Stack Web & Relational Databases",
+    "eyebrow": "PLATFORM ENGINEERING",
+    "summary": "Engineering scalable multi-tier web platforms with React.js, Node.js, Express, and PostgreSQL/MongoDB. Designing RESTful APIs, role-based access control, responsive interfaces, and continuous cloud deployments.",
+    "category": "Software Engineering",
+    "status": "Production Deployed",
+    "order": 4,
+    "technologies": [
+      "React.js",
+      "Node.js",
+      "Express",
+      "PostgreSQL",
+      "MongoDB",
+      "REST APIs",
+      "Tailwind CSS"
+    ],
+    "metrics": [
+      {
+        "label": "Architecture",
+        "value": "3-Tier Web"
+      },
+      {
+        "label": "Cloud Hosts",
+        "value": "Netlify & Vercel"
+      }
+    ]
+  },
+  {
+    "type": "skill",
+    "slug": "machine-learning",
+    "title": "Machine Learning & Time-Series Forecasting",
+    "eyebrow": "ANALYTICAL MODELING",
+    "summary": "Evidence-backed experience in feature engineering, tabular predictive modeling, and chronological validation for real-world load forecasting and regression tasks.",
+    "category": "AI & Machine Learning",
+    "status": "Research Proven",
+    "order": 5,
     "technologies": [
       "Scikit-learn",
       "XGBoost",
       "LightGBM",
-      "CatBoost"
+      "CatBoost",
+      "Pandas",
+      "NumPy"
+    ],
+    "metrics": [
+      {
+        "label": "Focus",
+        "value": "Time-Series AI"
+      },
+      {
+        "label": "Validation",
+        "value": "Chronological CV"
+      }
     ]
   },
   {
     "type": "skill",
     "slug": "programming",
-    "title": "Programming",
-    "eyebrow": "CAPABILITY",
-    "summary": "Problem solving and software development across multiple paradigms.",
-    "category": "Engineering",
-    "status": "Academic Experience",
-    "order": 2,
+    "title": "Core Programming & Algorithms",
+    "eyebrow": "ENGINEERING FOUNDATION",
+    "summary": "Strong command of computational fundamentals, algorithmic problem solving, data structures, and memory-safe design across C, C++, Python, and Java.",
+    "category": "Software Engineering",
+    "status": "Academic Core",
+    "order": 6,
     "technologies": [
-      "Python",
       "C",
       "C++",
+      "Python",
       "Java",
-      "SQL"
+      "SQL",
+      "Git"
+    ],
+    "metrics": [
+      {
+        "label": "CGPA",
+        "value": "3.99/4.00"
+      },
+      {
+        "label": "Foundation",
+        "value": "Data Structures & Algos"
+      }
     ]
   },
   {
     "type": "blog",
     "slug": "why-context-matters-in-load-forecasting",
-    "title": "Why Context Matters in Load Forecasting",
+    "title": "Why Context Matters in Complex AI Systems",
     "eyebrow": "RESEARCH LOG 001",
-    "summary": "Weather alone does not explain electricity demand; context and recovery behavior matter too.",
+    "summary": "Data alone does not explain dynamic real-world environments; contextual awareness and domain constraints matter.",
     "content": "A useful forecasting system must understand not only the recent load curve but also the context around it. Holidays change routines, storms affect demand and generation, load shedding creates artificial dips, and recovery periods can produce rebounds. Context-aware feature design helps a model distinguish these regimes instead of treating every hour as statistically identical.",
     "category": "AI Research",
     "status": "Published",
@@ -759,7 +1043,7 @@ const rawContent = [
     "order": 1,
     "publishedAt": "2026-06-01",
     "tags": [
-      "STLF",
+      "Time Series",
       "Context-Aware AI",
       "Energy"
     ]
